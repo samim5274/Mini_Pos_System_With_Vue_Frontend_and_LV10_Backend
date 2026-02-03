@@ -21,6 +21,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Common Routes
     Route::post('/logout', [LoginController::class, 'logout']);
-    Route::get('/user', [UserController::class, 'user']);
+    Route::get('/users', [UserController::class, 'users']);
+
+    Route::get('/products', [ProductController::class, 'products']);
+    Route::post('/create-product', [ProductController::class, 'create']);
 
 });
