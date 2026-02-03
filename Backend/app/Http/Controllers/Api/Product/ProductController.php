@@ -14,13 +14,9 @@ class ProductController extends Controller
 {
     public function products(){
 
-        $products = Product::get();
+        $products = Product::latest()->paginate(5);
 
-        return response()->json([
-            'success'   => true,
-            'message'   => "Get all products.",
-            'data'      => $products,
-        ]);
+        return response()->json($products);
     }
 
     private function uploadPhoto($file, $folder)

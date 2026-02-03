@@ -83,7 +83,7 @@
                                             <!-- Image -->
                                             <td class="px-4 py-3">
                                             <img
-                                                :src="product.image ? product.image : 'https://e7.pngegg.com/pngimages/8/752/png-clipart-cadbury-dairy-milk-hamper-chocolate-candy-product-food-heroes-thumbnail.png'"
+                                                :src="product.image ? product.image : 'https://e7.pngegg.com/pngimages/399/825/png-clipart-microcontroller-electronics-product-engineering-embedded-system-design-electronics-engineering-thumbnail.png'"
                                                 class="w-10 h-10 rounded object-cover border"
                                             />
                                             </td>
@@ -127,6 +127,43 @@
                                     </tbody>
                                 </table>
                             </div>
+                            <div class="flex items-center justify-between px-4 py-4 border-t bg-white">
+
+                                <button
+                                    @click="fetchProducts(currentPage-1)"
+                                    :disabled="currentPage === 1"
+                                    class="px-3 py-1 rounded border bg-slate-100 disabled:opacity-40">
+                                    Prev
+                                </button>
+
+                                <div class="flex gap-2">
+                                    <button
+                                    v-for="page in lastPage"
+                                    :key="page"
+                                    @click="fetchProducts(page)"
+                                    :class="[
+                                        'px-3 py-1 rounded border',
+                                        currentPage === page
+                                        ? 'bg-slate-900 text-white'
+                                        : 'bg-white hover:bg-slate-100'
+                                    ]"
+                                    >
+                                    {{ page }}
+                                    </button>
+                                </div>
+
+                                <button
+                                    @click="fetchProducts(currentPage+1)"
+                                    :disabled="currentPage === lastPage"
+                                    class="px-3 py-1 rounded border bg-slate-100 disabled:opacity-40">
+                                    Next
+                                </button>
+<div class="text-xs text-slate-500">
+  total: {{ total }} | per: {{ perPage }} | last: {{ lastPage }}
+</div>
+
+                                </div>
+
                         </section>
                     </div>
                 </main>
@@ -140,35 +177,56 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import api from "../services/api";
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from "vue-router"
 
 import Navbar from "./navbar.vue";
 import HeaderSection from "./header-section.vue";
 
+const route = useRoute()
 const router = useRouter()
 
 const products = ref([]);
 const loading = ref(false);
 const errorMsg = ref("");
 
-async function fetchProducts() {
+const currentPage = ref(1);
+const lastPage = ref(1);
+
+const total = ref(0)
+const perPage = ref(5)
+
+async function fetchProducts(page = 1) {
     loading.value = true;
     errorMsg.value = "";
 
     try{
-        const res = await api.get("/products");
+        const res = await api.get(`/products?page=${page}`)
+        
+        // const res = await api.get("/products");
+        // const payload = res.data;
 
-        const payload = res.data;
+        // if (Array.isArray(payload?.data)) {
+        //     products.value = payload.data;
+        // } else if (Array.isArray(payload)) {
+        //     products.value = payload;
+        // } else if (payload) {
+        //     products.value = [payload];
+        // } else {
+        //     products.value = [];
+        // }
 
-        if (Array.isArray(payload?.data)) {
-            products.value = payload.data;
-        } else if (Array.isArray(payload)) {
-            products.value = payload;
-        } else if (payload) {
-            products.value = [payload];
-        } else {
-            products.value = [];
-        }
+        products.value = Array.isArray(res?.data?.data) ? res.data.data : [];
+
+        currentPage.value = Math.min(res?.data?.current_page ?? page, res?.data?.last_page ?? 1)
+        lastPage.value = res?.data?.last_page ?? 1
+
+        total.value = res?.data?.total ?? 0
+        perPage.value = res?.data?.per_page ?? 5
+
+        router.replace({ query: { page: currentPage.value } });
+
+        console.log("PAGINATE RES:", res.data);
+
     }  catch (err) {
         console.log("ERR:", err);
         errorMsg.value =
@@ -181,7 +239,10 @@ async function fetchProducts() {
     }
 }
 
-onMounted(fetchProducts);
-
+// onMounted(fetchProducts);
+onMounted(() => {
+    const page = Number(route.query.page) || 1
+    fetchProducts(page)
+})
 </script>
 
