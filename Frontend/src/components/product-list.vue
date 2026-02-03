@@ -15,7 +15,7 @@
             <navbar />
 
             <!-- Main Content -->
-            <mainSection />
+            
 
             </div>
         </div>
@@ -25,21 +25,12 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import api from '../services/api'
+
 import navbar from './navbar.vue'
 import headerSection from './header-section.vue'
-import mainSection from './main.vue'
+
 
 const router = useRouter()
 
-const logout = async () => {
-    try {
-        await api.post('/logout')
-        localStorage.removeItem('token')
-        router.push('/login')
-    } catch (e) {}
-        localStorage.removeItem('token')
-        router.push('/login')
-    }
-
 </script>
+
