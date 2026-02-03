@@ -127,8 +127,19 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="flex items-center justify-between px-4 py-4 border-t bg-white">
 
+                            <!-- pagination -->
+                            <div class="flex items-center justify-center gap-2 px-4 py-4 border-t bg-white">
+
+                                <!-- First -->
+                                <button
+                                    @click="fetchProducts(1)"
+                                    :disabled="currentPage === 1"
+                                    class="px-3 py-1 rounded border bg-slate-100 disabled:opacity-40">
+                                    First
+                                </button>
+
+                                <!-- Prev -->
                                 <button
                                     @click="fetchProducts(currentPage-1)"
                                     :disabled="currentPage === 1"
@@ -136,34 +147,38 @@
                                     Prev
                                 </button>
 
-                                <div class="flex gap-2">
-                                    <button
-                                    v-for="page in lastPage"
+                                <!-- Middle pages (1 left + current + 1 right) -->
+                                <button
+                                    v-for="page in visiblePages"
                                     :key="page"
                                     @click="fetchProducts(page)"
                                     :class="[
-                                        'px-3 py-1 rounded border',
-                                        currentPage === page
+                                    'px-3 py-1 rounded border',
+                                    currentPage === page
                                         ? 'bg-slate-900 text-white'
                                         : 'bg-white hover:bg-slate-100'
                                     ]"
-                                    >
+                                >
                                     {{ page }}
-                                    </button>
-                                </div>
+                                </button>
 
+                                <!-- Next -->
                                 <button
                                     @click="fetchProducts(currentPage+1)"
                                     :disabled="currentPage === lastPage"
                                     class="px-3 py-1 rounded border bg-slate-100 disabled:opacity-40">
                                     Next
                                 </button>
-<div class="text-xs text-slate-500">
-  total: {{ total }} | per: {{ perPage }} | last: {{ lastPage }}
-</div>
 
-                                </div>
+                                <!-- Last -->
+                                <button
+                                    @click="fetchProducts(lastPage)"
+                                    :disabled="currentPage === lastPage"
+                                    class="px-3 py-1 rounded border bg-slate-100 disabled:opacity-40">
+                                    Last
+                                </button>
 
+                            </div>
                         </section>
                     </div>
                 </main>
@@ -175,7 +190,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import api from "../services/api";
 import { useRoute, useRouter } from "vue-router"
 
@@ -194,6 +209,20 @@ const lastPage = ref(1);
 
 const total = ref(0)
 const perPage = ref(5)
+
+const visiblePages = computed(() => {
+  const pages = []
+
+  const start = Math.max(1, currentPage.value - 1)
+  const end = Math.min(lastPage.value, currentPage.value + 1)
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
 
 async function fetchProducts(page = 1) {
     loading.value = true;
