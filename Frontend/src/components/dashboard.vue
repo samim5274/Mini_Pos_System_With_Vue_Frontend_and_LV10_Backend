@@ -32,14 +32,4 @@ import mainSection from './main.vue'
 
 const router = useRouter()
 
-const logout = async () => {
-    try {
-        await api.post('/logout')
-        localStorage.removeItem('token')
-        router.push('/login')
-    } catch (e) {}
-        localStorage.removeItem('token')
-        router.push('/login')
-    }
-
 </script>

@@ -65,5 +65,20 @@
     </aside>
 </template>
 
-<script></script>
+<script setup>
+import { useRouter } from 'vue-router'
+import api from '../services/api'
+
+const router = useRouter()
+
+const logout = async () => {
+  try {
+    await api.post('/logout')
+  } catch (e) {}
+
+  localStorage.removeItem('token')
+  router.push('/login')
+}
+</script>
+
 
