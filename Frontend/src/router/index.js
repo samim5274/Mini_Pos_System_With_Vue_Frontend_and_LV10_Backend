@@ -5,6 +5,7 @@ import Register from '../components/register.vue'
 import dashboard from '../components/dashboard.vue'
 import products from '../components/product-list.vue'
 import createProduct from '../components/create-product.vue'
+import editProduct from '../components/edit-product.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -13,6 +14,7 @@ const routes = [
   { path: '/dashboard', component: dashboard, meta: { requiresAuth: true } },
   { path: '/products', component: products, meta: { requiresAuth: true } },
   { path: '/create-product', component: createProduct, meta: { requiresAuth: true } },
+  { path: '/edit-product/:id', component: editProduct, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

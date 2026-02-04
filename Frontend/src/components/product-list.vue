@@ -112,12 +112,13 @@
                                             <td class="px-4 py-3 text-slate-700">৳ {{ product.price }}</td>
 
                                             <td class="px-4 py-3 text-right space-x-2">
-                                            <button
-                                                @click="editProduct(product)"
+                                            <router-link :to="`/edit-product/${product.id}`">
+                                            <button                                               
                                                 class="text-blue-600 font-semibold hover:underline"
                                             >
                                                 Edit
                                             </button>
+                                            </router-link>
                                             <button
                                                 @click="deleteProduct(product.id)"
                                                 class="text-red-600 font-semibold hover:underline"
@@ -257,7 +258,7 @@ async function fetchProducts(page = 1) {
 
         router.replace({ query: { page: currentPage.value } });
 
-        console.log("PAGINATE RES:", res.data);
+        // console.log("PAGINATE RES:", res.data);
 
     }  catch (err) {
         console.log("ERR:", err);
@@ -268,6 +269,19 @@ async function fetchProducts(page = 1) {
         "Products load korte problem hocche.";
     } finally {
         loading.value = false;
+    }
+}
+
+async function deleteProduct(id){
+    if(!confirm("Are you sure to delete this product?")) return;
+
+    try{
+        const res = await api.delete(`/delete-product/${id}`);
+        products.value = products.value.filter(p => p.id !== id)
+        // console.log(res.data.message);
+    } catch(err){
+        alert('Delete failed')
+        console.log(err)
     }
 }
 

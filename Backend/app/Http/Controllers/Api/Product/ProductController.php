@@ -119,8 +119,104 @@ class ProductController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete product',
-                // prod এ এটা hide রাখবে, এখন debug এর জন্য রাখলাম:
                 'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function edit($id){
+        try {
+            $product = Product::findOrFail($id);
+
+            $product->image_url = $product->image ? asset('storage/'.$product->image) : null;
+
+            return response()->json([
+                'success' => true,
+                'data' => $product
+            ], 200);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found',
+            ], 404);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to edit product',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function update(Request $request, $id){
+        
+        $product = Product::findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'name'           => 'required|string|max:255',
+            'sku'            => 'required|string|max:100|unique:products,sku,' . $product->id, // ✅ exclude current
+            'price'          => 'required|numeric|min:0',
+            'stock_quantity' => 'required|integer|min:0',
+            'min_stock'      => 'required|integer|min:0',
+            'image'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::transaction(function () use ($request, $product) {
+
+                // if new image uploaded, delete old image + store new
+                if ($request->hasFile('image')) {
+
+                    // delete old file
+                    if ($product->image && Storage::disk('public')->exists($product->image)) {
+                        Storage::disk('public')->delete($product->image);
+                    }
+
+                    // upload new file
+                    $newPath = $this->uploadPhoto($request->file('image'), 'products');
+
+                    if (!$newPath) {
+                        // throw to rollback
+                        throw new \Exception("Image size must not exceed 2MB.");
+                    }
+
+                    $product->image = $newPath;
+                }
+
+                // update other fields
+                $product->name           = $request->name;
+                $product->sku            = $request->sku;
+                $product->price          = $request->price;
+                $product->stock_quantity = $request->stock_quantity;
+                $product->min_stock      = $request->min_stock;
+
+                $product->save();
+            });
+
+            // attach image url for frontend
+            $product->refresh();
+            $product->image_url = $product->image ? asset('storage/'.$product->image) : null;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product updated successfully',
+                'data'    => $product
+            ], 200);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update product',
+                'error'   => $e->getMessage()
             ], 500);
         }
     }
