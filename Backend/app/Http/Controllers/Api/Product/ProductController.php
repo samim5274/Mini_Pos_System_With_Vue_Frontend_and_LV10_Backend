@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\Product;
 
@@ -86,4 +88,41 @@ class ProductController extends Controller
             'data'    => $product
         ], 201);
     }
+
+    public function delete($id) {
+        try {
+            $product = Product::findOrFail($id);
+
+            DB::transaction(function () use ($product) {
+
+                // delete image from storage
+                if ($product->image && Storage::disk('public')->exists($product->image)) {
+                    Storage::disk('public')->delete($product->image);
+                }
+
+                // delete product
+                $product->delete();
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product deleted successfully',
+            ], 200);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found',
+            ], 404);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete product',
+                // prod এ এটা hide রাখবে, এখন debug এর জন্য রাখলাম:
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }
