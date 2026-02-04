@@ -10,7 +10,7 @@
                 class="nav-item"
                 active-class="nav-active"
                 >
-                <span class="icon">🏠</span>
+                <span class="icon"><i class="fa-solid fa-house-chimney"></i></span>
                 Dashboard
             </router-link>
 
@@ -20,7 +20,7 @@
                 class="nav-item"
                 active-class="nav-active"
                 >
-                <span class="icon">📦</span>
+                <span class="icon"><i class="fa-solid fa-box-open"></i></span>
                 Products
             </router-link>
 

@@ -24,12 +24,14 @@
                         </div>
 
                         <div class="flex gap-2">
-                            <button class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                            <!-- <button class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                             Export
-                            </button>
+                            </button> -->
+                            <router-link to="/create-product">
                             <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black">
-                            Create Order
+                            <i class="fa-solid fa-calendar-plus me-2"></i> Add new
                             </button>
+                            </router-link>
                         </div>
                     </div>
 
@@ -83,9 +85,10 @@
                                             <!-- Image -->
                                             <td class="px-4 py-3">
                                             <img
-                                                :src="product.image ? product.image : 'https://e7.pngegg.com/pngimages/399/825/png-clipart-microcontroller-electronics-product-engineering-embedded-system-design-electronics-engineering-thumbnail.png'"
+                                                :src="product.image_url || 'https://e7.pngegg.com/pngimages/399/825/png-clipart-microcontroller-electronics-product-engineering-embedded-system-design-electronics-engineering-thumbnail.png'"
                                                 class="w-10 h-10 rounded object-cover border"
                                             />
+
                                             </td>
 
                                             <td class="px-4 py-3 font-semibold text-slate-900">

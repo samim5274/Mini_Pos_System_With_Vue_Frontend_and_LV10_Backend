@@ -4,6 +4,7 @@ import Login from '../components/login.vue'
 import Register from '../components/register.vue'
 import dashboard from '../components/dashboard.vue'
 import products from '../components/product-list.vue'
+import createProduct from '../components/create-product.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -11,6 +12,7 @@ const routes = [
   { path: '/register', component: Register },
   { path: '/dashboard', component: dashboard, meta: { requiresAuth: true } },
   { path: '/products', component: products, meta: { requiresAuth: true } },
+  { path: '/create-product', component: createProduct, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

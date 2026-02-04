@@ -14,7 +14,12 @@ class ProductController extends Controller
 {
     public function products(){
 
-        $products = Product::latest()->paginate(5);
+        $products = Product::latest()->paginate(10);
+
+        $products->getCollection()->transform(function ($p) {
+            $p->image_url = $p->image ? asset('storage/' . $p->image) : null;
+            return $p;
+        });
 
         return response()->json($products);
     }
@@ -33,7 +38,7 @@ class ProductController extends Controller
         return $file->storeAs($folder, $name, 'public');
     }
 
-    public function create(Request $request){
+    public function store(Request $request){
         $validator = Validator::make($request->all(), [
             'name'           => 'required|string|max:255',
             'sku'            => 'required|string|max:100|unique:products,sku',
@@ -54,16 +59,16 @@ class ProductController extends Controller
 
         if ($request->hasFile('image')) {
 
-            $image = $this->uploadPhoto($request->file('image'), 'products');
+            $imagePath = $this->uploadPhoto($request->file('image'), 'products');
 
-            if (!$image) {                    
+            if (!$imagePath) {                    
                 return response()->json([
                     'success' => false,
                     'message' => "Image size must not exceed 2MB.",
                 ], 422);
             }
 
-            $validated['image'] = $image;
+            // $validated['image'] = $imagePath;
         }
 
         $product = Product::create([

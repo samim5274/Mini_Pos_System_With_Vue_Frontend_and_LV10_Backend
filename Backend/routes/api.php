@@ -24,6 +24,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users', [UserController::class, 'users']);
 
     Route::get('/products', [ProductController::class, 'products']);
-    Route::post('/create-product', [ProductController::class, 'create']);
+    Route::post('/create-product', [ProductController::class, 'store']);
 
 });
