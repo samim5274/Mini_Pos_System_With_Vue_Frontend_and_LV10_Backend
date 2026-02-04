@@ -73,7 +73,7 @@ async function submit(){
         // console.log(fd.get('image')) // should be File
 
         const res = await api.post('/create-product', fd)
-        console.log(res.data.message);
+        // console.log(res.data.message);
         router.push('/products')
 
     }catch(err){

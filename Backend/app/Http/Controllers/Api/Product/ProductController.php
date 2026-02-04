@@ -26,6 +26,18 @@ class ProductController extends Controller
         return response()->json($products);
     }
 
+    private function generateSku(string $name): string
+    {
+        $base = strtoupper(Str::slug($name, ''));
+        $base = substr($base, 0, 8);
+        $sku  = $base . '-' . rand(1000, 9999);
+
+        while (Product::where('sku', $sku)->exists()) {
+            $sku = $base . '-' . rand(1000, 9999);
+        }
+        return $sku;
+    }
+
     private function uploadPhoto($file, $folder)
     {
         $maxSize = 2 * 1024 * 1024; // 2MB
@@ -43,7 +55,7 @@ class ProductController extends Controller
     public function store(Request $request){
         $validator = Validator::make($request->all(), [
             'name'           => 'required|string|max:255',
-            'sku'            => 'required|string|max:100|unique:products,sku',
+            'sku'            => 'nullable|string|max:100|unique:products,sku',
             'price'          => 'required|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
             'min_stock'      => 'required|integer|min:0',
@@ -56,6 +68,8 @@ class ProductController extends Controller
                 'errors'  => $validator->errors()
             ], 422);
         }
+
+        $data = $validator->validated();
 
         $imagePath = null;
 
@@ -73,9 +87,14 @@ class ProductController extends Controller
             // $validated['image'] = $imagePath;
         }
 
+        // SKU auto-generate if empty
+        if (empty($data['sku'])) {
+            $sku = $this->generateSku($data['name']); // must return unique
+        }
+
         $product = Product::create([
             'name'           => $request->name,
-            'sku'            => $request->sku,
+            'sku'            => $sku,
             'price'          => $request->price,
             'stock_quantity' => $request->stock_quantity,
             'min_stock'      => $request->min_stock,
