@@ -45,12 +45,14 @@
                     <div>
                         <label class="label">Product Name</label>
                         <input v-model="form.name" class="input" placeholder="e.g Double A A4 paper" />
+                        <p class="error" v-if="errors.name">{{ errors.name[0] }}</p>
                     </div>
 
                     <!-- SKU -->
                     <div>
                         <label class="label">SKU</label>
                         <input v-model="form.sku" class="input" placeholder="e.g A4PAPER001" />
+                        <p class="error" v-if="errors.sku">{{ errors.sku[0] }}</p>
                     </div>
 
                     <!-- Price + Stock -->
@@ -58,11 +60,13 @@
                         <div>
                         <label class="label">Price</label>
                         <input type="number" v-model="form.price" class="input" placeholder="e.g 450" />
+                        <p class="error" v-if="errors.price">{{ errors.price[0] }}</p>
                         </div>
 
                         <div>
                         <label class="label">Stock Quantity</label>
                         <input type="number" v-model="form.stock_quantity" class="input" placeholder="e.g 15" />
+                        <p class="error" v-if="errors.stock_quantity">{{ errors.stock_quantity[0] }}</p>
                         </div>
                     </div>
 
@@ -70,6 +74,7 @@
                     <div>
                         <label class="label">Minimum Stock Alert</label>
                         <input type="number" v-model="form.min_stock" class="input" placeholder="e.g 5" />
+                        <p class="error" v-if="errors.min_stock">{{ errors.min_stock[0] }}</p>
                     </div>
 
                     <!-- Current Image -->
@@ -128,6 +133,7 @@
                                 </div>
                             </div>
                         </div>
+                        <p class="error" v-if="errors.image">{{ errors.image[0] }}</p>
                     </div>
 
                     <!-- Buttons -->
