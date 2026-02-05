@@ -130,7 +130,7 @@
             <div class="rounded-2xl bg-white border border-slate-200 shadow-sm p-4">
             <h3 class="text-sm font-bold text-slate-900">Quick Actions</h3>
             <div class="mt-3 space-y-2">
-                <button class="w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Add New Product</button>
+                <button class="w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"><router-link to="/create-product">Add New Product</router-link></button>
                 <button class="w-full rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black">Create Invoice</button>
                 <button class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">View Report</button>
             </div>
