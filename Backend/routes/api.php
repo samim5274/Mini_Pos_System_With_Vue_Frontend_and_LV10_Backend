@@ -29,4 +29,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/edit-product/{id}', [ProductController::class, 'edit']);
     Route::post('/update-product/{id}', [ProductController::class, 'update']);
 
+    Route::prefix('cart')->group(function () {
+        Route::get('/', [CartController::class, 'index']);
+        Route::post('/add', [CartController::class, 'addToCart']);
+    });
+
 });

@@ -40,4 +40,13 @@ class User extends Authenticatable
         'otp_expires_at' => 'datetime',
         'last_login_at' => 'datetime',
     ];
+
+    public function cart() {
+        return $this->hasMany(Cart::class,'user_id');
+    }
+
+    public function order()
+    {
+        return $this->hasMany(Order::class,'user_id');
+    }
 }
