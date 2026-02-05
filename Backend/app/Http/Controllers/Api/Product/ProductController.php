@@ -88,16 +88,17 @@ class ProductController extends Controller
         }
 
         // SKU auto-generate if empty
-        if (empty($data['sku'])) {
+        $sku = $data['sku'] ?? null;
+        if(empty($sku)) {
             $sku = $this->generateSku($data['name']); // must return unique
         }
 
         $product = Product::create([
-            'name'           => $request->name,
+            'name'           => $data['name'],
             'sku'            => $sku,
-            'price'          => $request->price,
-            'stock_quantity' => $request->stock_quantity,
-            'min_stock'      => $request->min_stock,
+            'price'          => $data['price'],
+            'stock_quantity' => $data['stock_quantity'],
+            'min_stock'      => $data['min_stock'],
             'image'          => $imagePath,
         ]);
 
