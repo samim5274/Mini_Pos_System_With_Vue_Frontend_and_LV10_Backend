@@ -15,9 +15,69 @@
 
                 <!-- Main Content -->
                 <main class="lg:col-span-9 space-y-6">
+
+                    <!-- Quick Add (Cart Top) -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+                        <div class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+
+                            <!-- Left title -->
+                            <div class="lg:w-52">
+                                <h3 class="text-sm font-semibold text-slate-800">Quick Add</h3>
+                                <p class="text-xs text-slate-500">Scan barcode / search product</p>
+                            </div>
+
+                            <form @keyup.enter.prevent="addCartForm" class="space-y-5">
+
+                                <!-- Right: Input group -->
+                                <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                                
+                                    <!-- Search input -->
+                                    <div class="relative flex-1 sm:w-80">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                        🔎
+                                        </span>
+
+                                        <input
+                                            type="text"
+                                            ref="quickAddInput"
+                                            v-model="form.inputSearch"                                            
+                                            placeholder="Scan barcode / SKU / search product..."
+                                            class="w-full h-11 pl-10 pr-3 rounded-xl border border-slate-200 bg-slate-50"
+                                            />
+                                    </div>
+
+                                    <!-- Qty -->
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-semibold text-slate-500">Qty</span>
+                                        <input
+                                            v-model.number="form.qty"
+                                            type="number"                                        
+                                            min="1"
+                                            value="1"
+                                            class="w-20 h-11 text-center rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-800
+                                                    outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                                            />
+                                    </div>
+                                    
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Suggestion dropdown (UI only) -->
+                        <div class="mt-3 rounded-xl border border-slate-200 bg-white overflow-hidden hidden">
+                            <button class="w-full text-left px-4 py-3 hover:bg-slate-50">
+                            <div class="text-sm font-semibold text-slate-800">Double A A4 Paper</div>
+                            <div class="text-xs text-slate-500">SKU: SKU-001 • ৳ 450</div>
+                            </button>
+                            <button class="w-full text-left px-4 py-3 hover:bg-slate-50">
+                            <div class="text-sm font-semibold text-slate-800">Ball Pen Blue</div>
+                            <div class="text-xs text-slate-500">SKU: SKU-002 • ৳ 12</div>
+                            </button>
+                        </div>
+                    </div>
                     
                     <!-- cart item list -->
-                     <div class="min-h-screen bg-slate-100">
+                    <div class="min-h-screen bg-slate-100">
                         <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                             <!-- Left: Cart Items -->
@@ -209,7 +269,7 @@
                             </div>
 
                         </div>
-                  </div>
+                    </div>
                 </main>
 
             </div>
@@ -218,7 +278,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, reactive, onMounted, computed, nextTick } from "vue";
 import api,  { makeImg } from "../services/api";
 import { useRouter } from "vue-router"
 
@@ -231,6 +291,12 @@ const carts = ref([]);
 const loading = ref(false);
 const errorMsg = ref("");
 const successMsg = ref("");
+const quickAddInput = ref(null);
+
+const focusInput = async () => {
+    await nextTick();
+    quickAddInput.value?.focus();
+};
 
 async function fetchCartItems() {
     loading.value = true;
@@ -280,6 +346,42 @@ async function removeItem(item) {
     }
 }
 
+const form = reactive({
+    inputSearch: "",
+    qty: 1
+});
+
+async function addCartForm() {
+    if(!form.inputSearch) return;
+
+    loading.value = true;
+    errorMsg.value = "";
+    successMsg.value = "";
+
+    try{
+        const payload = {
+            search: form.inputSearch,
+            qty: form.qty,
+        }
+
+        const res = await api.post("/cart/add", payload);
+        successMsg.value = res.data?.message || "Added to cart";
+        // refresh cart
+        await fetchCartItems();
+        // clear
+        form.inputSearch = "";
+        form.qty = 1;
+
+        // focus again
+        focusInput();
+    } catch(err){
+        errorMsg.value =
+            err?.response?.data?.message || "Failed to add product";
+    } finally {
+        loading.value = false;
+    }
+}
+
 const isEmpty = computed(() => !loading.value && carts.value.length === 0 );
 
 const subTotal = computed(() => {
@@ -294,7 +396,10 @@ const subTotal = computed(() => {
 const total = computed(() => subTotal.value);
 
 
-onMounted(fetchCartItems);
+onMounted(() => {
+    fetchCartItems();
+    focusInput();
+});
 
 </script>
 

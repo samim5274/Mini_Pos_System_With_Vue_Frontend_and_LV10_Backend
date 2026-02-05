@@ -43,16 +43,15 @@ class CartController extends Controller
 
     public function addToCart(Request $request){
 
-        $id = $request->id;
+        $search = trim($request->search);
+        $qty    = (int) ($request->qty ?? 1);
 
         $user = auth()->user() ?? abort(401, 'Unauthorized');
 
         $reg = RegGenerator::generateOrderReg($user->id)
             ?? abort(500, 'Reg number not generated.');
 
-        $search = trim($request->id);
-
-        return DB::transaction(function() use ($search, $reg, $user){
+        return DB::transaction(function() use ($search, $reg, $user, $qty){
             $product = Product::where(function ($q) use ($search) {
 
                 if (is_numeric($search)) {
@@ -75,19 +74,19 @@ class CartController extends Controller
             $cartItem = Cart::where('reg', $reg)->where('product_id', $product->id)->first();
 
             if ($cartItem) {
-                $cartItem->increment('quantity');
+                $cartItem->increment('quantity', $qty);
             } else {
                 Cart::create([
                     'reg'        => $reg,
                     'product_id' => $product->id,
                     'user_id'    => $user->id,
-                    'quantity'   => 1,
+                    'quantity'   => $qty,
                     'price'      => $product->price,
                 ]);
             }
 
             // atomic stock reduce
-            $product->decrement('stock_quantity');
+            $product->decrement('stock_quantity', $qty);
 
             return response()->json([
                 'success' => true,
