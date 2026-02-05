@@ -97,4 +97,40 @@ class CartController extends Controller
         });
 
     }
+
+    public function removeItem(Request $request, $reg, $id)
+    {
+        // reg / id guard
+        if (empty($reg) || empty($id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Reg and product id is missing.',
+            ], 422);
+        }
+
+        $userId = Auth::id();
+        if (!$userId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized user',
+            ], 401);
+        }
+
+        $cartItem = Cart::where('user_id', $userId)->where('reg', $reg)
+                        ->where('product_id', $id)->first();
+
+        if (!$cartItem) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found in cart.',
+            ], 404);
+        }
+
+        $cartItem->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cart item removed successfully.',
+        ], 200);
+    }
 }
