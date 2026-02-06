@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [CartController::class, 'index']);
         Route::post('/add', [CartController::class, 'addToCart']);
         Route::delete('/remove-item/{reg}/{id}', [CartController::class, 'removeItem']);
+        Route::post('/qty-update/{reg}/{product_id}', [CartController::class, 'updateQty']);
     });
 
 });

@@ -152,34 +152,35 @@
                                                 <div class="flex justify-center">
                                                     <div class="inline-flex items-center rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                                                     
-                                                    <!-- Minus -->
-                                                    <button
-                                                        type="button"
-                                                        class="h-9 w-9 grid place-items-center text-slate-700 hover:bg-slate-50 active:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                        :disabled="Number(item.quantity) <= 1"
-                                                        @click="item.quantity = Math.max(1, Number(item.quantity || 1) - 1)"
-                                                        aria-label="Decrease quantity"
-                                                    >
-                                                        <span class="text-lg leading-none">−</span>
-                                                    </button>
+                                                        <!-- Minus -->
+                                                        <button
+                                                            type="button"
+                                                            class="h-9 w-9 grid place-items-center text-slate-700 hover:bg-slate-50 active:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            :disabled="Number(item.quantity) <= 1"
+                                                            @click="decreaseQty(item)"
+                                                            aria-label="Decrease quantity"
+                                                        >
+                                                            <span class="text-lg leading-none">−</span>
+                                                        </button>
 
-                                                    <!-- Input -->
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        v-model.number="item.quantity"
-                                                        class="h-9 w-16 text-center text-sm font-semibold text-slate-800 outline-none border-x border-slate-200 bg-white focus:bg-slate-50"
-                                                    />
+                                                        <!-- Input -->
+                                                        <input
+                                                            type="number"
+                                                            min="1"
+                                                            v-model.number="item.quantity"
+                                                            @input="queueQtyUpdate(item)"
+                                                            class="h-9 w-16 text-center text-sm font-semibold text-slate-800 outline-none border-x border-slate-200 bg-white focus:bg-slate-50"
+                                                        />
 
-                                                    <!-- Plus -->
-                                                    <button
-                                                        type="button"
-                                                        class="h-9 w-9 grid place-items-center text-slate-700 hover:bg-slate-50 active:bg-slate-100"
-                                                        @click="item.quantity = Number(item.quantity || 1) + 1"
-                                                        aria-label="Increase quantity"
-                                                    >
-                                                        <span class="text-lg leading-none">+</span>
-                                                    </button>
+                                                        <!-- Plus -->
+                                                        <button
+                                                            type="button"
+                                                            class="h-9 w-9 grid place-items-center text-slate-700 hover:bg-slate-50 active:bg-slate-100"
+                                                            @click="increaseQty(item)"
+                                                            aria-label="Increase quantity"
+                                                        >
+                                                            <span class="text-lg leading-none">+</span>
+                                                        </button>
 
                                                     </div>
                                                 </div>
@@ -280,6 +281,7 @@ const loading = ref(false);
 const errorMsg = ref("");
 const successMsg = ref("");
 const quickAddInput = ref(null);
+const qtyTimers = reactive({});
 
 // auto focus input
 const focusInput = async () => {
@@ -387,9 +389,47 @@ const subTotal = computed(() => {
     }, 0);
 });
 
-
 const total = computed(() => subTotal.value);
 
+// update stock quantity
+async function increaseQty(item){
+    item.quantity = Math.max(1, Number(item.quantity || 1) + 1);
+    queueQtyUpdate(item);
+}
+
+async function decreaseQty(item) {
+    item.quantity = Math.max(1, Number(item.quantity || 1) - 1);
+    queueQtyUpdate(item);
+}
+
+async function queueQtyUpdate(item){
+    const key = `${item.reg}_${item.product_id}`;
+
+    if(qtyTimers[key]) clearTimeout(qtyTimers[key]);
+
+    qtyTimers[key] = setTimeout(() => {
+        updateQty(item);
+    }, 400);
+}
+
+async function updateQty(item){
+    try{
+        const res = await api.post(`/cart/qty-update/${item.reg}/${item.product_id}`, {
+            quantity: Number(item.quantity),
+        });
+        if (res?.data?.success) {
+            item.quantity = Number(res.data.quantity); // sync
+            item.available_stock = res.data.stock;
+        }
+    } catch (err){
+        await fetchCartItems();
+        const msg = err?.response?.data?.message || "Out of stock.";
+        errorMsg.value = msg;
+        setTimeout(() => {
+            errorMsg.value = "";
+        }, 1000);
+    }
+}
 
 onMounted(() => {
     fetchCartItems();

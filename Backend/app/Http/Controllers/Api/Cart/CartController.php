@@ -146,4 +146,65 @@ class CartController extends Controller
             'message' => 'Cart item removed successfully.',
         ], 200);
     }
+
+    public function updateQty(Request $request, $reg, $product_id){
+        $data = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        return DB::transaction(function () use ($data, $reg, $product_id){
+
+            // 1) Cart row loack
+            $cart = Cart::where('reg', $reg)->where('product_id', $product_id)
+                        ->where('user_id', auth()->id())->lockForUpdate()->firstOrFail();
+
+            $oldQty = (int) $cart->quantity;
+            $newQty = (int) $data['quantity'];
+
+            if($newQty === $oldQty){
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Qty no change.',
+                    'quantity' => $cart->quantity,
+                ]);
+            }
+
+            // different calculate
+            $diff = $newQty - $oldQty;
+            // diff > 0 => customer more qty => stock (-)
+            // diff < 0 => customer less qty => stock (+)
+
+            // 2) Product row loack
+            $product = Product::lockForUpdate()->where('id', $product_id)->firstOrFail();
+
+            // 3) Stock check + update
+            if($diff > 0){
+                // when update stock then need available stock in product
+                if($product->stock_quantity < $diff){
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Out of stock',
+                        'available_stock' => $product->stock_quantity,
+                    ], 422);
+                } else {
+                    $product->stock_quantity -= $diff;
+                }
+            } else {
+                $product->stock_quantity += abs($diff);
+            }
+
+            // 4) Save both
+            $cart->quantity = $newQty;
+
+            $product->save();
+            $cart->save();
+
+            return response()->json([
+                'success' => true,
+                'quantity' => $cart->quantity,
+                'stock' => $product->stock_quantity,
+            ]);
+
+        });
+    }
 }
