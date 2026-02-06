@@ -115,6 +115,15 @@ class CartController extends Controller
             ], 401);
         }
 
+        $product = Product::where('id', $id)->first();
+
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found in Product table.',
+            ], 404);
+        }
+
         $cartItem = Cart::where('user_id', $userId)->where('reg', $reg)
                         ->where('product_id', $id)->first();
 
@@ -123,6 +132,11 @@ class CartController extends Controller
                 'success' => false,
                 'message' => 'Product not found in cart.',
             ], 404);
+        }
+
+        if($cartItem->quantity > 0){
+            $product->stock_quantity += $cartItem->quantity;
+            $product->save();            
         }
 
         $cartItem->delete();

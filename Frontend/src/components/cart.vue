@@ -62,18 +62,6 @@
                                 </div>
                             </form>
                         </div>
-
-                        <!-- Suggestion dropdown (UI only) -->
-                        <div class="mt-3 rounded-xl border border-slate-200 bg-white overflow-hidden hidden">
-                            <button class="w-full text-left px-4 py-3 hover:bg-slate-50">
-                            <div class="text-sm font-semibold text-slate-800">Double A A4 Paper</div>
-                            <div class="text-xs text-slate-500">SKU: SKU-001 • ৳ 450</div>
-                            </button>
-                            <button class="w-full text-left px-4 py-3 hover:bg-slate-50">
-                            <div class="text-sm font-semibold text-slate-800">Ball Pen Blue</div>
-                            <div class="text-xs text-slate-500">SKU: SKU-002 • ৳ 12</div>
-                            </button>
-                        </div>
                     </div>
                     
                     <!-- cart item list -->
@@ -293,11 +281,14 @@ const errorMsg = ref("");
 const successMsg = ref("");
 const quickAddInput = ref(null);
 
+// auto focus input
 const focusInput = async () => {
     await nextTick();
     quickAddInput.value?.focus();
 };
 
+
+//fetch cart item
 async function fetchCartItems() {
     loading.value = true;
     errorMsg.value = "";
@@ -322,6 +313,7 @@ async function fetchCartItems() {
     }
 }
 
+// remove item form cart
 async function removeItem(item) {
     loading.value = true;
     errorMsg.value = "";
@@ -329,7 +321,7 @@ async function removeItem(item) {
 
     try{
         const res = await api.delete(`/cart/remove-item/${item.reg}/${item.product_id}`);
-        // console.log(res.data);
+        // console.log(res.data?.message);
         successMsg.value = res.data?.message || "Removed";
         await fetchCartItems();
         carts.value = carts.value.filter(i => i.product_id !== item.product_id);
@@ -351,6 +343,7 @@ const form = reactive({
     qty: 1
 });
 
+// add to cart using input from or scan
 async function addCartForm() {
     if(!form.inputSearch) return;
 
@@ -377,6 +370,8 @@ async function addCartForm() {
     } catch(err){
         errorMsg.value =
             err?.response?.data?.message || "Failed to add product";
+        
+        form.inputSearch = "";
     } finally {
         loading.value = false;
     }
