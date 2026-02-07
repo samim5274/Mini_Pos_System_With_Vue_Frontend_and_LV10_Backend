@@ -249,7 +249,7 @@
 
                                 <button
                                     class="w-full mt-5 px-4 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50"
-                                    
+                                    :disabled="loading || carts.length == 0" @click="checkOut"
                                 > Checkout </button>
 
                                 <p class="text-xs text-slate-500 mt-3">
@@ -307,6 +307,9 @@ async function fetchCartItems() {
         // console.log("carts:", carts.value);
         // console.log("items length:", carts.value.length);
         // console.log("token:", localStorage.getItem("token"));
+        if(carts.value.length > 0){
+            localStorage.setItem("reg", carts.value[0].reg);
+        }
     } catch (err){
         const status = err?.response?.status;
         if (status === 401) {
@@ -450,6 +453,45 @@ async function updateQty(item){
             errorMsg.value = "";
         }, 1000);
     }
+}
+
+// check out or confirm order
+
+async function  checkOut() {
+    loading.value = true;
+    errorMsg.value = "";
+    successMsg.value = "";
+
+    try{
+        const reg = localStorage.getItem('reg');
+
+        if(!reg || carts.value.length === 0){
+            errorMsg.value = "Cart is empty.";
+            return;
+        }
+
+        const res = await api.post("/order/confirm", {reg});
+        successMsg.value =
+            res.data?.message || "Order confirm successfully.";
+
+        console.log("API:", res.data);
+        // console.log("Message:", successMsg.value);
+
+        setTimeout(() => (successMsg.value = ""), 2000);
+
+        await refreshCartOnly();
+    } catch (err) {
+        errorMsg.value = err?.response?.data?.message || "Order failed";
+        setTimeout(() => (errorMsg.value = ""), 2000);
+    } finally {
+        loading.value = false;
+    }
+}
+
+async function refreshCartOnly(){
+    const res = await api.get("/cart");
+    carts.value = res.data?.data || [];
+    await cartStore.fetchCart();
 }
 
 onMounted(() => {

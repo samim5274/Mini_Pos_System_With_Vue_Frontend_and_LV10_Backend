@@ -37,7 +37,8 @@
                             grid place-items-center text-[11px] font-bold
                             bg-red-600 text-white rounded-full"
                     >
-                    {{ cartStore.qtyCount }}
+                    {{ cartStore.qtyCount }}/
+                    {{ cartStore.itemCount }}
                 </span>
             </router-link>
 

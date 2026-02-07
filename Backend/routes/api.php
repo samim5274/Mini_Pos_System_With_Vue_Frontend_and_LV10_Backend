@@ -36,4 +36,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/qty-update/{reg}/{product_id}', [CartController::class, 'updateQty']);
     });
 
+    Route::prefix('order')->group(function () {
+        Route::post('/confirm', [OrderController::class, 'confirmOrder']);
+    });
+
 });
