@@ -26,11 +26,19 @@
 
             <router-link
                 to="/cart"
-                class="nav-item"
+                class="nav-item relative"
                 active-class="nav-active"
                 >
                 <span class="icon"><i class="fa-solid fa-cart-plus"></i></span>
                 Cart
+                <span
+                    v-if="cartStore.qtyCount > 0"
+                    class="absolute top-2 right-3 min-w-[20px] h-5 px-1
+                            grid place-items-center text-[11px] font-bold
+                            bg-red-600 text-white rounded-full"
+                    >
+                    {{ cartStore.qtyCount }}
+                </span>
             </router-link>
 
             <router-link
@@ -80,16 +88,25 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import api from '../services/api'
+import { onMounted } from "vue";
+import { useCartStore } from "../stores/cartStore";
 
+const cartStore = useCartStore();
+
+onMounted(() => {
+    cartStore.fetchCart(); // navbar load হলে count আনবে
+});
+
+// user logout
 const router = useRouter()
 
 const logout = async () => {
-  try {
-    await api.post('/logout')
-  } catch (e) {}
+    try {
+        await api.post('/logout')
+    } catch (e) {}
 
-  localStorage.removeItem('token')
-  router.push('/login')
+    localStorage.removeItem('token')
+    router.push('/login')
 }
 </script>
 

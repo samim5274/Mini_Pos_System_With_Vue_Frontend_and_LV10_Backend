@@ -223,7 +223,7 @@
 
                             <!-- Right: Summary -->
                             <div class="bg-white rounded-xl shadow p-5 h-fit">
-                                <h2 class="text-lg font-bold">Order Summary</h2>
+                                <h2 class="text-lg font-bold">Order Summary - <span>{{ itemCount }} items</span></h2>
 
                                 <div class="mt-4 space-y-3 text-sm">
                                     <div class="flex items-center justify-between">
@@ -233,12 +233,12 @@
 
                                     <div class="flex items-center justify-between">
                                         <span class="text-slate-600">Discount</span>
-                                        <span class="font-semibold">৳ 00/-</span>
+                                        <span class="font-semibold">৳ {{ discountAmount }}/-</span>
                                     </div>
 
                                     <div class="flex items-center justify-between">
                                         <span class="text-slate-600">VAT</span>
-                                        <span class="font-semibold">৳ 00/-</span>
+                                        <span class="font-semibold">৳ {{ vatAmount }}/-</span>
                                     </div>
 
                                     <div class="border-t pt-3 flex items-center justify-between">
@@ -270,6 +270,8 @@
 import { ref, reactive, onMounted, computed, nextTick } from "vue";
 import api,  { makeImg } from "../services/api";
 import { useRouter } from "vue-router"
+import { useCartStore } from "../stores/cartStore";
+const cartStore = useCartStore();
 
 import Navbar from "./navbar.vue";
 import HeaderSection from "./header-section.vue";
@@ -282,6 +284,8 @@ const errorMsg = ref("");
 const successMsg = ref("");
 const quickAddInput = ref(null);
 const qtyTimers = reactive({});
+const discount = ref(100);
+const vatRate = ref(0.15);
 
 // auto focus input
 const focusInput = async () => {
@@ -299,6 +303,7 @@ async function fetchCartItems() {
     try{
         const res = await api.get("/cart");
         carts.value = res.data?.data || [];
+        await cartStore.fetchCart();
         // console.log("carts:", carts.value);
         // console.log("items length:", carts.value.length);
         // console.log("token:", localStorage.getItem("token"));
@@ -327,6 +332,7 @@ async function removeItem(item) {
         successMsg.value = res.data?.message || "Removed";
         await fetchCartItems();
         carts.value = carts.value.filter(i => i.product_id !== item.product_id);
+        await cartStore.fetchCart();
     } catch(err){
         const status = err?.response?.status;
         if (status === 401) {
@@ -379,8 +385,9 @@ async function addCartForm() {
     }
 }
 
+// computed
 const isEmpty = computed(() => !loading.value && carts.value.length === 0 );
-
+const itemCount = computed(() => carts.value.length);
 const subTotal = computed(() => {
     return carts.value.reduce((sum, item) => {
         const qty = Number(item.quantity || item.qty || 1);
@@ -389,7 +396,20 @@ const subTotal = computed(() => {
     }, 0);
 });
 
-const total = computed(() => subTotal.value);
+// discount amount (never exceed subtotal)
+const discountAmount = computed(() => {
+    return Math.min(Number(discount.value || 0), subTotal.value);
+});
+
+// VAT calculation (usually after discount)
+const vatAmount = computed(() => {
+    const base = Math.max(subTotal.value - discountAmount.value, 0);
+    return base * Number(vatRate.value || 0);
+});
+
+const total = computed(() => {
+    return Math.max(subTotal.value - discountAmount.value, 0) + vatAmount.value;
+});
 
 // update stock quantity
 async function increaseQty(item){
@@ -421,6 +441,7 @@ async function updateQty(item){
             item.quantity = Number(res.data.quantity); // sync
             item.available_stock = res.data.stock;
         }
+        await cartStore.fetchCart();
     } catch (err){
         await fetchCartItems();
         const msg = err?.response?.data?.message || "Out of stock.";
@@ -434,6 +455,7 @@ async function updateQty(item){
 onMounted(() => {
     fetchCartItems();
     focusInput();
+    cartStore.fetchCart();
 });
 
 </script>
