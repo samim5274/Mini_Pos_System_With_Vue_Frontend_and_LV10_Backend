@@ -43,7 +43,7 @@
             </router-link>
 
             <router-link
-                to="/"
+                to="/order"
                 class="nav-item"
                 active-class="nav-active"
                 >

@@ -37,7 +37,10 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('order')->group(function () {
+        Route::post('/', [OrderController::class, 'orderList']);
         Route::post('/confirm', [OrderController::class, 'confirmOrder']);
+        Route::get('/{id}/total', [OrderController::class, 'getTotal']);
+        Route::post('/pay', [OrderController::class, 'pay']);
     });
 
 });

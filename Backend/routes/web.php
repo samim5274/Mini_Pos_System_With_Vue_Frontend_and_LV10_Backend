@@ -1,18 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+use App\Http\Controllers\Api\Order\OrderController;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Route::post('/pay-via-ajax', [OrderController::class, 'payViaAjax']);
+Route::post('/success', [OrderController::class, 'success']);
+Route::post('/fail', [OrderController::class, 'fail']);
+Route::post('/cancel', [OrderController::class, 'cancel']);
+Route::post('/ipn', [OrderController::class, 'ipn']);

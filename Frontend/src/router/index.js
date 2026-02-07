@@ -7,6 +7,8 @@ import products from '../components/product-list.vue'
 import createProduct from '../components/create-product.vue'
 import editProduct from '../components/edit-product.vue'
 import cart from '../components/cart.vue'
+import payment from '../components/payment.vue'
+import order from '../components/order.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -17,6 +19,8 @@ const routes = [
   { path: '/create-product', component: createProduct, meta: { requiresAuth: true } },
   { path: '/edit-product/:id', component: editProduct, props: true, meta: { requiresAuth: true } },
   { path: '/cart', component: cart, meta: { requiresAuth: true } },
+  { path: '/order/payment/:id', component: payment, meta: {requiresAuth: true} },
+  { path: '/order', component: order, meta: {requiresAuth: true} },
 ]
 
 const router = createRouter({

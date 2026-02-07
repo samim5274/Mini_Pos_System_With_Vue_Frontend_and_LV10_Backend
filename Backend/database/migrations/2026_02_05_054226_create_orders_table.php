@@ -16,8 +16,11 @@ return new class extends Migration
             $table->string('reg')->unique();
             $table->date('date');
             $table->foreignId('user_id')->constrained('users')->onDelete('restrict');
-            $table->enum('status', ['Pending', 'Paid', 'Cancelled'])->default('Pending');
+            $table->string('transaction_id')->nullable()->unique();
+            // unpaid|pending|paid|failed|canceled|processing
+            $table->enum('status', ['unpaid', 'Pending', 'Paid', 'failed', 'Cancelled', 'processing'])->default('unpaid'); 
             $table->decimal('total', 10, 2)->default(0);
+            $table->timestamp('paid_at')->nullable();
             $table->timestamps();
         });
     }

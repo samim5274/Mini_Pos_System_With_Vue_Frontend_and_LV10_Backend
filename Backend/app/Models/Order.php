@@ -13,8 +13,10 @@ class Order extends Model
         'reg',
         'date',
         'user_id',
-        'status',
-        'total'
+        'transaction_id',
+        'status', // unpaid|pending|paid|failed|canceled|processing
+        'total',
+        'paid_at',
     ];
 
     public function user()

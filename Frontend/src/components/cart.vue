@@ -477,7 +477,10 @@ async function  checkOut() {
         console.log("API:", res.data);
         // console.log("Message:", successMsg.value);
 
-        setTimeout(() => (successMsg.value = ""), 2000);
+        setTimeout(() => {
+            // successMsg.value = "";
+            router.push(`order/payment/${res.data.order_id}`);
+        }, 400);
 
         await refreshCartOnly();
     } catch (err) {
