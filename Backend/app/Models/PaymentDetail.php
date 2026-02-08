@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class paymentDetail extends Model
+class PaymentDetail extends Model
 {
     use HasFactory;
 
@@ -14,6 +14,8 @@ class paymentDetail extends Model
         'user_id',
         'order_id',
         'reg',
+        'currency',
+        'transaction_id',
         'total',
         'discount',
         'vat',
