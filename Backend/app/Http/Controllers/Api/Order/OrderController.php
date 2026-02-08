@@ -14,6 +14,8 @@ use App\Services\RegGenerator;
 use App\Models\Product;
 use App\Models\Cart;
 use App\Models\Order;
+use App\Models\Company;
+use App\Models\paymentDetail;
 use App\Library\SslCommerz\SslCommerzNotification;
 
 class OrderController extends Controller
@@ -36,6 +38,86 @@ class OrderController extends Controller
             'success' => true,
             'message' => "Get all order list.",
             'data' => $orders,
+        ], 200);
+    }
+
+    public function orderDetails($id)
+    {        
+        $userId = auth()->id();
+        $today  = now()->toDateString();
+        $order = Order::with('user')->where('user_id', $userId)
+                    ->whereDate('date', $today)->where('id', $id)->first();
+        if (!$order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found.',
+            ], 404);
+        }
+
+        $cartItems = Cart::with('product')->where('reg', $order->reg)->get();
+        if ($cartItems->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order has no cart items.',
+            ], 404);
+        }
+
+        $subtotal = $cartItems->sum(fn ($i) => (int)$i->quantity * (float)$i->price);
+        $qtyTotal = $cartItems->sum('quantity');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Order details fetched successfully.',
+            'data' => [
+                'order' => $order,
+                'cartitems' => $cartItems,
+                'summary' => [
+                    'subtotal' => $subtotal,
+                    'qty_total' => $qtyTotal,
+                    'grand_total' => (float) $order->total,
+                ],
+            ],
+        ], 200);
+    }
+
+    public function orderPrint($reg)
+    {        
+        $company = Company::first();
+        $userId = auth()->id();
+        $today  = now()->toDateString();
+        $order = Order::with('user')->where('user_id', $userId)
+                    ->whereDate('date', $today)->where('reg', $reg)->first();
+        if (!$order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found.',
+            ], 404);
+        }
+
+        $cartItems = Cart::with('product')->where('reg', $order->reg)->get();
+        if ($cartItems->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order has no cart items.',
+            ], 404);
+        }
+
+        $subtotal = $cartItems->sum(fn ($i) => (int)$i->quantity * (float)$i->price);
+        $qtyTotal = $cartItems->sum('quantity');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Order details fetched successfully.',
+            'company' => $company,
+            'data' => [
+                'order' => $order,
+                'cartitems' => $cartItems,
+                'summary' => [
+                    'subtotal' => $subtotal,
+                    'qty_total' => $qtyTotal,
+                    'grand_total' => (float) $order->total,
+                ],
+            ],
         ], 200);
     }
 

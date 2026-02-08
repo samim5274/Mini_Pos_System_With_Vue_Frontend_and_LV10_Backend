@@ -18,7 +18,7 @@
 
                 <!-- Header row -->
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-900">Order Details</h1>
+                    <h1 class="text-2xl font-bold text-slate-900">Order List</h1>
                     <p class="text-sm text-slate-600">Track sales, orders, and inventory at a glance.</p>
                 </div>
 
@@ -63,7 +63,7 @@
                         <tbody class="divide-y">
                             <tr v-for="order in orders" :key="order.id" class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold text-slate-900 whitespace-nowrap">
-                                {{ order.reg }}
+                                INV-{{ order.reg }}
                             </td>
 
                             <td class="px-4 py-3 text-slate-700 whitespace-nowrap">
@@ -88,7 +88,7 @@
                                 class="text-blue-700 font-semibold hover:underline"
                                 @click="goDetails(order.id)"
                                 >
-                                Details
+                                <i class="fa-solid fa-eye"></i>
                                 </button>
                             </td>
                             </tr>
@@ -132,8 +132,7 @@ function formatMoney(v) {
 }
 
 function goDetails(id) {
-    // তোমার details route যেভাবে আছে সেই অনুযায়ী change করো
-    // router.push(`/order/${id}`);
+    router.push(`/order/${id}`);
 }
 
 async function loadOrders() {
