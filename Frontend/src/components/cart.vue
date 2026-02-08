@@ -78,10 +78,6 @@
                                     </button>
                                 </div>
 
-                                <div v-if="errorMsg" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                                    {{ errorMsg }}
-                                </div>
-
                                 <Transition name="toast">
                                     <div
                                         v-if="successMsg"
@@ -90,7 +86,8 @@
                                         <!-- icon -->
                                         <div
                                             class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-700">
-                                            ✓
+                                            <!-- ✓ -->
+                                            <i class="fa-regular fa-circle-check"></i>
                                         </div>
 
                                         <div class="flex-1">
@@ -123,11 +120,11 @@
                                         <!-- icon -->
                                         <div
                                             class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-700">
-                                            ✓
+                                            <i class="fa-solid fa-x"></i>
                                         </div>
 
                                         <div class="flex-1">
-                                            <p class="text-sm font-semibold text-slate-900">Success</p>
+                                            <p class="text-sm font-semibold text-slate-900">Failed</p>
                                             <p class="mt-0.5 text-sm text-slate-600">
                                             {{ errorMsg }}
                                             </p>
@@ -285,38 +282,140 @@
                             </div>
 
                             <!-- Right: Summary -->
-                            <div class="bg-white rounded-xl shadow p-5 h-fit">
-                                <h2 class="text-lg font-bold">Order Summary - <span>{{ itemCount }} items</span></h2>
+                            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 h-fit">
 
-                                <div class="mt-4 space-y-3 text-sm">
+                                <!-- Header -->
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                    <h2 class="text-lg font-bold text-slate-900">Order Summary</h2>
+                                    <p class="text-xs text-slate-500 mt-0.5">{{ itemCount }} items</p>
+                                    </div>
+
+                                    <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                                    INV-{{ carts?.[0]?.reg || '—' }}
+                                    </span>
+                                </div>
+
+                                <!-- Totals -->
+                                <div class="mt-5 space-y-3 text-sm">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-slate-600">Subtotal</span>
-                                        <span class="font-semibold">৳ {{ subTotal }}/-</span>
+                                    <span class="text-slate-600">Subtotal</span>
+                                    <span class="font-semibold text-slate-900">৳ {{ subTotal.toFixed(2) }}</span>
                                     </div>
 
                                     <div class="flex items-center justify-between">
-                                        <span class="text-slate-600">Discount</span>
-                                        <span class="font-semibold">৳ {{ discountAmount }}/-</span>
+                                    <span class="text-slate-600">Discount</span>
+                                    <span class="font-semibold text-slate-900">- ৳ {{ discountAmount.toFixed(2) }}</span>
                                     </div>
 
                                     <div class="flex items-center justify-between">
-                                        <span class="text-slate-600">VAT</span>
-                                        <span class="font-semibold">৳ {{ vatAmount }}/-</span>
+                                    <span class="text-slate-600">VAT</span>
+                                    <span class="font-semibold text-slate-900">৳ {{ vatAmount.toFixed(2) }}</span>
                                     </div>
 
-                                    <div class="border-t pt-3 flex items-center justify-between">
-                                        <span class="text-slate-700 font-bold">Total</span>
-                                        <span class="text-slate-900 font-bold text-lg">৳ {{ total }}/-</span>
+                                    <div class="pt-3 border-t border-slate-200 flex items-center justify-between">
+                                    <span class="text-slate-900 font-bold">Total</span>
+                                    <span class="text-slate-900 font-extrabold text-xl">৳ {{ total.toFixed(2) }}</span>
                                     </div>
                                 </div>
 
+                                <!-- Controls -->
+                                <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                    <p class="text-xs font-semibold text-slate-600 mb-3">Adjustments</p>
+
+                                    <div class="space-y-3">
+                                    <!-- VAT (%) -->
+                                    <div class="flex items-center justify-between gap-3">
+                                        <label class="text-sm font-medium text-slate-700">VAT</label>
+                                        <div class="relative w-36">
+                                        <input
+                                            v-model.number="vatRate"
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            placeholder="0"
+                                            class="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 pr-8 text-right font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                                        />
+                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">%</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Discount (BDT) -->
+                                    <div class="flex items-center justify-between gap-3">
+                                        <label class="text-sm font-medium text-slate-700">Discount</label>
+                                        <div class="relative w-36">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">%</span>
+                                        <input
+                                            v-model.number="discount"
+                                            type="number"
+                                            min="0"
+                                            placeholder="0"
+                                            class="w-full h-10 rounded-xl border border-slate-200 bg-white pl-7 pr-3 text-right font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                                        />
+                                        </div>
+                                    </div>
+
+                                    <!-- Payment Method -->
+                                    <div class="flex items-center justify-between gap-3">
+                                        <label class="text-sm font-medium text-slate-700">Payment Method</label>
+                                        <select
+                                        v-model="paymentMethod"
+                                        class="h-10 w-36 rounded-xl border border-slate-200 bg-white px-3 font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                                        >
+                                        <option value="cash">Cash</option>
+                                        <option value="bkash">Bkash</option>
+                                        <option value="nagad">Nagad</option>
+                                        <option value="bank">Bank Transfer</option>
+                                        <option value="cheque">Cheque</option>
+                                        </select>
+                                    </div>
+                                    </div>
+                                </div>
+
+                                <!-- Cash / Return -->
+                                <div class="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+                                    <p class="text-xs font-semibold text-slate-600 mb-3">Cash Handling</p>
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-xs text-slate-500">Received (৳)</label>
+                                        <input
+                                        v-model.number="paidAmount"
+                                        type="number"
+                                        min="0"
+                                        placeholder="0"
+                                        class="mt-1 w-full h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-right font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label class="text-xs text-slate-500">Return (৳)</label>
+                                        <input
+                                        :value="returnAmount.toFixed(2)"
+                                        type="text"
+                                        readonly
+                                        class="mt-1 w-full h-10 rounded-xl border border-slate-200 bg-slate-100 px-3 text-right font-bold text-slate-900"
+                                        />
+                                    </div>
+                                    </div>
+
+                                    <div class="flex items-center mt-3 justify-between rounded-xl bg-red-50 border border-red-200 px-3 py-2">
+                                        <span class="text-red-700 font-medium">Due</span>
+                                        <span class="font-bold text-red-700">৳ {{ dueAmount.toFixed(2) }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Checkout -->
                                 <button
-                                    class="w-full mt-5 px-4 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50"
-                                    :disabled="loading || carts.length == 0" @click="checkOut"
-                                > Checkout </button>
+                                    class="w-full mt-5 px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    :disabled="loading || carts.length === 0"
+                                    @click="checkOut"
+                                >
+                                    Checkout
+                                </button>
 
                                 <p class="text-xs text-slate-500 mt-3">
-                                By placing your order, you agree to our terms & conditions.
+                                    By placing your order, you agree to our terms &amp; conditions.
                                 </p>
                             </div>
 
@@ -347,8 +446,6 @@ const errorMsg = ref("");
 const successMsg = ref("");
 const quickAddInput = ref(null);
 const qtyTimers = reactive({});
-const discount = ref(100);
-const vatRate = ref(0.15);
 
 // auto focus input
 const focusInput = async () => {
@@ -452,6 +549,12 @@ async function addCartForm() {
 // computed
 const isEmpty = computed(() => !loading.value && carts.value.length === 0 );
 const itemCount = computed(() => carts.value.length);
+
+const discount = ref(0);     // %
+const vatRate = ref(0);      // %
+const paymentMethod = ref("cash");
+const paidAmount = ref(0);
+
 const subTotal = computed(() => {
     return carts.value.reduce((sum, item) => {
         const qty = Number(item.quantity || item.qty || 1);
@@ -460,20 +563,33 @@ const subTotal = computed(() => {
     }, 0);
 });
 
-// discount amount (never exceed subtotal)
+// discount %
 const discountAmount = computed(() => {
-    return Math.min(Number(discount.value || 0), subTotal.value);
+    const percent = Math.max(Number(discount.value || 0), 0) / 100;
+    return subTotal.value * percent;
 });
 
-// VAT calculation (usually after discount)
+// VAT %
 const vatAmount = computed(() => {
     const base = Math.max(subTotal.value - discountAmount.value, 0);
-    return base * Number(vatRate.value || 0);
+    const percent = Math.max(Number(vatRate.value || 0), 0) / 100;
+    return base * percent;
 });
 
 const total = computed(() => {
     return Math.max(subTotal.value - discountAmount.value, 0) + vatAmount.value;
 });
+
+const returnAmount = computed(() => {
+    return Math.max(Number(paidAmount.value || 0) - total.value, 0);
+});
+
+const dueAmount = computed(() => {
+    const paid = Number(paidAmount.value || 0);
+    if (paid === 0) return 0;
+    return paid < total.value ? total.value - paid : 0;
+});
+
 
 // update stock quantity
 async function increaseQty(item){
@@ -549,7 +665,15 @@ async function  checkOut() {
             return;
         }
 
-        const res = await api.post("/order/confirm", {reg});
+        const payload = {
+            reg,
+            discount: Number(discount.value || 0),
+            vat_rate: Number(vatRate.value || 0),
+            payment_method: paymentMethod.value,
+            received_amount: paymentMethod.value === "cash" ? Number(paidAmount.value || 0) : 0,
+        }
+
+        const res = await api.post("/order/confirm", {payload});
         successMsg.value = res.data?.message || "Order confirm successfully.";
         showSuccess(successMsg.value);
         // console.log("API:", res.data);
