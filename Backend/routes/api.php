@@ -17,7 +17,7 @@ Route::post('/register', [LoginController::class, 'register']);
 // ======================
 // Protected Routes
 // ======================
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:cart'])->group(function () {
 
     // Common Routes
     Route::post('/logout', [LoginController::class, 'logout']);

@@ -26,7 +26,7 @@
                                 <p class="text-xs text-slate-500">Scan barcode / search product</p>
                             </div>
 
-                            <form @keyup.enter.prevent="addCartForm" class="space-y-5">
+                            <form @keyup.prevent="addCartForm" class="space-y-5">
 
                                 <!-- Right: Input group -->
                                 <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -40,7 +40,8 @@
                                         <input
                                             type="text"
                                             ref="quickAddInput"
-                                            v-model="form.inputSearch"                                            
+                                            v-model="form.inputSearch"
+                                            @keydown.enter.prevent="addCartForm"
                                             placeholder="Scan barcode / SKU / search product..."
                                             class="w-full h-11 pl-10 pr-3 rounded-xl border border-slate-200 bg-slate-50"
                                             />
@@ -58,7 +59,6 @@
                                                     outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
                                             />
                                     </div>
-                                    
                                 </div>
                             </form>
                         </div>
@@ -462,13 +462,13 @@ async function fetchCartItems() {
 
     try{
         const res = await api.get("/cart");
-        carts.value = res.data?.data || [];
         await cartStore.fetchCart();
+        carts.value = res.data?.data || [];
         // console.log("carts:", carts.value);
         // console.log("items length:", carts.value.length);
         // console.log("token:", localStorage.getItem("token"));
         if(carts.value.length > 0){
-            localStorage.setItem("reg", carts.value[0].reg);
+            localStorage.setItem("reg", res.data.reg);
         }
     } catch (err){
         const status = err?.response?.status;
@@ -515,8 +515,14 @@ const form = reactive({
 });
 
 // add to cart using input from or scan
+let lastAddAt = 0;
 async function addCartForm() {
+    const now = Date.now();
+    if(now - lastAddAt < 1000) return; // ignore rapid repeats
+    lastAddAt = now;
+
     if(!form.inputSearch) return;
+    if (loading.value) return;
 
     loading.value = true;
     errorMsg.value = "";
@@ -530,13 +536,13 @@ async function addCartForm() {
 
         const res = await api.post("/cart/add", payload);
         successMsg.value = res.data?.message || "Added to cart";
+
         // refresh cart
-        await fetchCartItems();
-        // clear
+        scheduleCartRefresh();
+        
+        // clear & focus again
         form.inputSearch = "";
         form.qty = 1;
-
-        // focus again
         focusInput();
     } catch(err){
         showError(errorMsg.value = "Failed to add product");
@@ -544,6 +550,12 @@ async function addCartForm() {
     } finally {
         loading.value = false;
     }
+}
+
+let t=null;
+function scheduleCartRefresh(){
+    clearTimeout(t);
+    t=setTimeout(()=>fetchCartItems(), 300);
 }
 
 // computed
@@ -657,43 +669,64 @@ async function  checkOut() {
     errorMsg.value = "";
     successMsg.value = "";
 
-    try{
-        const reg = localStorage.getItem('reg');
-
-        if(!reg || carts.value.length === 0){
-            errorMsg.value = "Cart is empty.";
-            return;
-        }
-
-        const payload = {
-            reg,
-            discount: Number(discount.value || 0),
-            vat_rate: Number(vatRate.value || 0),
-            payment_method: paymentMethod.value,
-            received_amount: paymentMethod.value === "cash" ? Number(paidAmount.value || 0) : 0,
-        }
-
-        const res = await api.post("/order/confirm", {payload});
-        successMsg.value = res.data?.message || "Order confirm successfully.";
-        showSuccess(successMsg.value);
-        // console.log("API:", res.data);
-        // console.log("Message:", successMsg.value);
-
-        const win = window.open("about:blank", "_blank");
-        if(!win){
-            alert("Popup blocked! Allow popups.");
-            return;
-        }
-        
-        win.location.href = `/order/invoice-print/${res.data.data.reg}`;
-
-        await refreshCartOnly();
-    } catch (err) {
-        errorMsg.value = err?.response?.data?.message || "Order failed";
-        showError(errorMsg.value = "Order failed");
-    } finally {
-        loading.value = false;
+    const reg = localStorage.getItem('reg');
+    
+    const payload = {
+        reg,
+        discount: Number(discount.value || 0),
+        vat_rate: Number(vatRate.value || 0),
+        payment_method: paymentMethod.value,
+        received_amount: paymentMethod.value === "cash" ? Number(paidAmount.value || 0) : 0,
     }
+
+    const res = await api.post("/order/confirm", payload);
+    console.log(res.data);
+
+
+    // try{
+    //     const reg = localStorage.getItem('reg');
+    //     if(!reg || carts.value.length === 0){
+    //         errorMsg.value = "Cart is empty.";
+    //         return;
+    //     }
+
+    //     const payload = {
+    //         reg,
+    //         discount: Number(discount.value || 0),
+    //         vat_rate: Number(vatRate.value || 0),
+    //         payment_method: paymentMethod.value,
+    //         received_amount: paymentMethod.value === "cash" ? Number(paidAmount.value || 0) : 0,
+    //     }
+
+    //     const res = await api.post("/order/confirm", {payload});
+    //     if(res.data.success === false){
+    //         errorMsg.value = res.data?.message || "Order confirm successfully.";
+    //         showError(errorMsg.value);
+    //     }
+
+    //     successMsg.value = res.data?.message || "Order confirm successfully.";
+    //     showSuccess(successMsg.value);
+
+    //     console.log("API:", res.data);
+    //     console.log("Message:", successMsg.value);
+
+    //     // for new tab open
+    //     // const win = window.open("about:blank", "_blank");
+    //     // if(!win){
+    //     //     alert("Popup blocked! Allow popups.");
+    //     //     return;
+    //     // }
+    //     // 
+    //     // win.location.href = `/order/invoice-print/${res.data.data.reg}`;
+
+    //     await refreshCartOnly();
+    // } catch (err) {
+    //     console.log(err?.response?.data?.message);
+    //     errorMsg.value = err?.response?.data?.message || "Order failed";
+    //     showError(errorMsg.value = "Order failed");
+    // } finally {
+    //     loading.value = false;
+    // }
 }
 
 async function refreshCartOnly(){

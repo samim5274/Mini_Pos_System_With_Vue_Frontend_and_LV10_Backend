@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 use App\Services\RegGenerator;
 use App\Models\Product;
@@ -123,6 +124,18 @@ class OrderController extends Controller
 
     public function confirmOrder(Request $request){
 
+        $validated = $request->validate([
+            'reg' => ['required', 'string', 'max:50'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
+            'vat_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'payment_method' => ['required', 'string'],
+            'received_amount' => [
+                Rule::requiredIf(fn () => $request->payment_method === 'cash'),
+                'numeric',
+                'min:0',
+            ],
+        ]);
+
         $userId = auth()->id();
         $reg = RegGenerator::generateOrderReg($userId);
 
@@ -151,6 +164,8 @@ class OrderController extends Controller
                     $total += $item->quantity * $item->product->price;
                 }
 
+                $tranId = 'TRX-' . $order->reg . '-' . Str::upper(Str::random(6));
+
                 $order = Order::create([
                     'reg'       => $reg,
                     'date'      => now()->toDateString(),
@@ -158,6 +173,21 @@ class OrderController extends Controller
                     'status'    => 'unpaid',
                     'total'     => $total
                 ]);
+
+                $payData = new PaymentDetail();
+                $payData->date              = now()->toDateString();
+                $payData->user_id           = $userId;
+                $payData->order_id          = $order->id;
+                $payData->reg               = $reg;
+                $payData->transaction_id    = $tranId;
+                $payData->payment_method_id = $request->payment_method;
+
+                $payData->total             = "";
+                $payData->discount          = "";
+                $payData->vat               = "";
+                $payData->payable           = "";
+                $payData->pay               = "";
+                $payData->due               = "";
 
                 return response()->json([
                     'success' => true,
@@ -169,7 +199,7 @@ class OrderController extends Controller
             }
 
             return response()->json([
-                'success' => true,
+                'success' => false,
                 'message' => "Reg not match.",
             ]);
         });

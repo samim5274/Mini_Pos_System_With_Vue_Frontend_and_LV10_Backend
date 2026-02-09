@@ -16,6 +16,7 @@ class PaymentDetail extends Model
         'reg',
         'currency',
         'transaction_id',
+        'payment_method_id',
         'total',
         'discount',
         'vat',
@@ -33,4 +34,19 @@ class PaymentDetail extends Model
         'pay'      => 'decimal:2',
         'due'      => 'decimal:2',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id', 'id');
+    }
+
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id', 'id');
+    }
 }

@@ -20,8 +20,9 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained('orders')->onDelete('restrict');
             
             $table->unsignedBigInteger('reg')->unique();
-            $table->string('currency');
+            $table->string('currency')->default('BDT');
             $table->string('transaction_id')->nullable()->unique();
+            $table->foreignId('payment_method_id')->constrained('payment_methods')->onDelete('restrict');
 
             $table->decimal('total', 12, 2)->nullable();
             $table->decimal('discount', 12, 2)->nullable();

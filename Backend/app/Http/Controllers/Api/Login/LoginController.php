@@ -70,7 +70,7 @@ class LoginController extends Controller
         ) {
             return response()->json([
                 'message' => "Too many login attempts. Please try again later.",
-            ], 420);
+            ], 429);
         }
 
         // 4) Find user (no info leak)
