@@ -718,13 +718,13 @@ async function  checkOut() {
         // console.log("Message:", successMsg.value);
 
         // for new tab open
-        // const win = window.open("about:blank", "_blank");
-        // if(!win){
-        //     alert("Popup blocked! Allow popups.");
-        //     return;
-        // }
-        // 
-        // win.location.href = `/order/invoice-print/${res.data.data.reg}`;
+        const win = window.open("about:blank", "_blank");
+        if(!win){
+            alert("Popup blocked! Allow popups.");
+            return;
+        }
+        
+        win.location.href = `/order/invoice-print/${res.data.data.reg}`;
 
         await refreshCartOnly();
     } catch (err) {

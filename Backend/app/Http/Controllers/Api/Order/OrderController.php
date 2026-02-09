@@ -64,6 +64,14 @@ class OrderController extends Controller
             ], 404);
         }
 
+        $paymentDetails = PaymentDetail::where('reg', $order->reg)->with(['user','paymentMethod'])->where('user_id', $userId)->first();
+        if (!$paymentDetails) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment Details not found.',
+            ], 404);
+        }
+
         $subtotal = $cartItems->sum(fn ($i) => (int)$i->quantity * (float)$i->price);
         $qtyTotal = $cartItems->sum('quantity');
         
@@ -73,10 +81,9 @@ class OrderController extends Controller
             'data' => [
                 'order' => $order,
                 'cartitems' => $cartItems,
+                'paymentDetails'=> $paymentDetails,
                 'summary' => [
-                    'subtotal' => $subtotal,
                     'qty_total' => $qtyTotal,
-                    'grand_total' => (float) $order->total,
                 ],
             ],
         ], 200);
@@ -185,7 +192,7 @@ class OrderController extends Controller
                     'date'              => now()->toDateString(),
                     'user_id'           => $userId,
                     'transaction_id'    => $tranId,
-                    'status'            => 'unpaid',
+                    'status'            => 'Paid',
                     'total'             => $total
                 ]);
 
