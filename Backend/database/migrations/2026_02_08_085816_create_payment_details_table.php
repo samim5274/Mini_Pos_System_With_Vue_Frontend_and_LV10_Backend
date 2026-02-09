@@ -25,8 +25,12 @@ return new class extends Migration
             $table->foreignId('payment_method_id')->constrained('payment_methods')->onDelete('restrict');
 
             $table->decimal('total', 12, 2)->nullable();
-            $table->decimal('discount', 12, 2)->nullable();
-            $table->decimal('vat', 12, 2)->nullable();
+
+            $table->decimal('discount_rate', 6, 2)->nullable();
+            $table->decimal('discount_amount', 12, 2)->nullable();
+            $table->decimal('vat_rate', 6, 2)->nullable();
+            $table->decimal('vat_amount', 12, 2)->nullable();
+
             $table->decimal('payable', 12, 2)->nullable();
             $table->decimal('pay', 12, 2)->nullable();
             $table->decimal('due', 12, 2)->nullable();

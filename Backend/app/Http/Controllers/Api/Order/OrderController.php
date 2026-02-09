@@ -17,6 +17,7 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\Company;
 use App\Models\PaymentDetail;
+use App\Models\PaymentMethod;
 use App\Library\SslCommerz\SslCommerzNotification;
 
 class OrderController extends Controller
@@ -122,13 +123,23 @@ class OrderController extends Controller
         ], 200);
     }
 
+    public function paymentMethods()
+    {
+        $methods = PaymentMethod::where('status', 1)->orderBy('id', 'asc')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $methods
+        ]);
+    }
+
     public function confirmOrder(Request $request){
 
-        $validated = $request->validate([
+        $request->validate([
             'reg' => ['required', 'string', 'max:50'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'vat_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'payment_method' => ['required', 'string'],
+            'payment_method_id' => ['required', 'exists:payment_methods,id'],
             'received_amount' => [
                 Rule::requiredIf(fn () => $request->payment_method === 'cash'),
                 'numeric',
@@ -142,6 +153,9 @@ class OrderController extends Controller
         return DB::transaction(function() use ($reg, $userId, $request) {
             // check reg valid or not
             if($reg == $request->reg){
+
+                $method = PaymentMethod::findOrFail($request->payment_method_id);
+                $isCash = strtolower($method->name) === 'cash';
 
                 $cartItems = Cart::where("reg", $reg)->with('product')->where('user_id', $userId) ->get();
                 if ($cartItems->isEmpty()) {
@@ -164,14 +178,15 @@ class OrderController extends Controller
                     $total += $item->quantity * $item->product->price;
                 }
 
-                $tranId = 'TRX-' . $order->reg . '-' . Str::upper(Str::random(6));
+                $tranId = 'TRX-' . Str::uuid();
 
                 $order = Order::create([
-                    'reg'       => $reg,
-                    'date'      => now()->toDateString(),
-                    'user_id'   => $userId,
-                    'status'    => 'unpaid',
-                    'total'     => $total
+                    'reg'               => $reg,
+                    'date'              => now()->toDateString(),
+                    'user_id'           => $userId,
+                    'transaction_id'    => $tranId,
+                    'status'            => 'unpaid',
+                    'total'             => $total
                 ]);
 
                 $payData = new PaymentDetail();
@@ -180,14 +195,35 @@ class OrderController extends Controller
                 $payData->order_id          = $order->id;
                 $payData->reg               = $reg;
                 $payData->transaction_id    = $tranId;
-                $payData->payment_method_id = $request->payment_method;
+                $payData->payment_method_id = $request->payment_method_id;
 
-                $payData->total             = "";
-                $payData->discount          = "";
-                $payData->vat               = "";
-                $payData->payable           = "";
-                $payData->pay               = "";
-                $payData->due               = "";
+                $payable = 0;
+                $received = $isCash ? (float) $request->input('received_amount', 0) : $payable;
+                $discountRate  = (float) $request->input('discount', 0);
+                $vatRate       = (float) $request->input('vat_rate', 0);
+
+                // -----------------------------
+                // Calculations
+                // -----------------------------
+                $discountAmount = ($total * $discountRate) / 100;
+                $afterDiscount = max(0, $total - $discountAmount);
+                $vatAmount = ($afterDiscount * $vatRate) / 100;
+                $payable = $afterDiscount + $vatAmount;
+                $payAmount = min($received, $payable);
+                $dueAmount = max(0, $payable - $received);
+
+                $payData->total           = round($total, 2);
+                $payData->discount_rate   = round($discountRate, 2);
+                $payData->discount_amount = round($discountAmount, 2);
+
+                $payData->vat_rate        = round($vatRate, 2);
+                $payData->vat_amount      = round($vatAmount, 2);
+
+                $payData->payable         = round($payable, 2);
+                $payData->pay             = round($payAmount, 2);
+                $payData->due             = round($dueAmount, 2);
+
+                $payData->save();
 
                 return response()->json([
                     'success' => true,

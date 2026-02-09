@@ -38,6 +38,7 @@ Route::middleware(['auth:sanctum', 'throttle:cart'])->group(function () {
 
     Route::prefix('order')->group(function () {
         Route::post('/', [OrderController::class, 'orderList']);
+        Route::get('/payment-methods', [OrderController::class, 'paymentMethods']);
         Route::post('/details/{id}', [OrderController::class, 'orderDetails']);
         Route::post('/invoice-print/{reg}', [OrderController::class, 'orderPrint']);
         Route::post('/confirm', [OrderController::class, 'confirmOrder']);

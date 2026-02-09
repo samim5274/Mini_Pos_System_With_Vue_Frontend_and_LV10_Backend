@@ -362,11 +362,13 @@
                                         v-model="paymentMethod"
                                         class="h-10 w-36 rounded-xl border border-slate-200 bg-white px-3 font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
                                         >
-                                        <option value="cash">Cash</option>
-                                        <option value="bkash">Bkash</option>
-                                        <option value="nagad">Nagad</option>
-                                        <option value="bank">Bank Transfer</option>
-                                        <option value="cheque">Cheque</option>
+                                            <option
+                                                v-for="m in paymentMethods"
+                                                :key="m.id"
+                                                :value="m.id"
+                                            >
+                                                {{ m.name }}
+                                            </option>
                                         </select>
                                     </div>
                                     </div>
@@ -446,6 +448,7 @@ const errorMsg = ref("");
 const successMsg = ref("");
 const quickAddInput = ref(null);
 const qtyTimers = reactive({});
+const paymentMethods = ref([]);
 
 // auto focus input
 const focusInput = async () => {
@@ -556,6 +559,20 @@ let t=null;
 function scheduleCartRefresh(){
     clearTimeout(t);
     t=setTimeout(()=>fetchCartItems(), 300);
+}
+
+// fetch payment methods
+async function fetchPaymentMethods(){
+    const res = await api.get("/order/payment-methods");
+    paymentMethods.value = res.data?.data || [];
+
+    const cash = paymentMethods.value.find(
+        m => (m.name || "").toLowerCase() === "cash"
+    );
+
+    if (cash) {
+        paymentMethod.value = cash.id;
+    }
 }
 
 // computed
@@ -669,64 +686,54 @@ async function  checkOut() {
     errorMsg.value = "";
     successMsg.value = "";
 
-    const reg = localStorage.getItem('reg');
-    
-    const payload = {
-        reg,
-        discount: Number(discount.value || 0),
-        vat_rate: Number(vatRate.value || 0),
-        payment_method: paymentMethod.value,
-        received_amount: paymentMethod.value === "cash" ? Number(paidAmount.value || 0) : 0,
+    try{
+        const reg = localStorage.getItem('reg');
+        if(!reg || carts.value.length === 0){
+            errorMsg.value = "Cart is empty.";
+            return;
+        }
+
+        const cashMethodId = computed(() => {
+            return paymentMethods.value.find(m => (m.name || "").toLowerCase() === "cash")?.id ?? null;
+        });
+
+        const payload = {
+            reg,
+            discount: Number(discount.value || 0),
+            vat_rate: Number(vatRate.value || 0),
+            payment_method_id: paymentMethod.value,
+            received_amount: Number(paymentMethod.value) === cashMethodId.value ? Number(paidAmount.value || 0) : 0,
+        }
+
+        const res = await api.post("/order/confirm", payload);
+        if(res.data.success === false){
+            errorMsg.value = res.data?.message || "Order confirm successfully.";
+            showError(errorMsg.value);
+        }
+
+        successMsg.value = res.data?.message || "Order confirm successfully.";
+        showSuccess(successMsg.value);
+
+        // console.log("API:", res.data);
+        // console.log("Message:", successMsg.value);
+
+        // for new tab open
+        // const win = window.open("about:blank", "_blank");
+        // if(!win){
+        //     alert("Popup blocked! Allow popups.");
+        //     return;
+        // }
+        // 
+        // win.location.href = `/order/invoice-print/${res.data.data.reg}`;
+
+        await refreshCartOnly();
+    } catch (err) {
+        console.log(err?.response?.data?.message);
+        errorMsg.value = err?.response?.data?.message || "Order failed";
+        showError(errorMsg.value = "Order failed");
+    } finally {
+        loading.value = false;
     }
-
-    const res = await api.post("/order/confirm", payload);
-    console.log(res.data);
-
-
-    // try{
-    //     const reg = localStorage.getItem('reg');
-    //     if(!reg || carts.value.length === 0){
-    //         errorMsg.value = "Cart is empty.";
-    //         return;
-    //     }
-
-    //     const payload = {
-    //         reg,
-    //         discount: Number(discount.value || 0),
-    //         vat_rate: Number(vatRate.value || 0),
-    //         payment_method: paymentMethod.value,
-    //         received_amount: paymentMethod.value === "cash" ? Number(paidAmount.value || 0) : 0,
-    //     }
-
-    //     const res = await api.post("/order/confirm", {payload});
-    //     if(res.data.success === false){
-    //         errorMsg.value = res.data?.message || "Order confirm successfully.";
-    //         showError(errorMsg.value);
-    //     }
-
-    //     successMsg.value = res.data?.message || "Order confirm successfully.";
-    //     showSuccess(successMsg.value);
-
-    //     console.log("API:", res.data);
-    //     console.log("Message:", successMsg.value);
-
-    //     // for new tab open
-    //     // const win = window.open("about:blank", "_blank");
-    //     // if(!win){
-    //     //     alert("Popup blocked! Allow popups.");
-    //     //     return;
-    //     // }
-    //     // 
-    //     // win.location.href = `/order/invoice-print/${res.data.data.reg}`;
-
-    //     await refreshCartOnly();
-    // } catch (err) {
-    //     console.log(err?.response?.data?.message);
-    //     errorMsg.value = err?.response?.data?.message || "Order failed";
-    //     showError(errorMsg.value = "Order failed");
-    // } finally {
-    //     loading.value = false;
-    // }
 }
 
 async function refreshCartOnly(){
@@ -738,6 +745,7 @@ async function refreshCartOnly(){
 onMounted(() => {
     fetchCartItems();
     focusInput();
+    fetchPaymentMethods();
     cartStore.fetchCart();
 });
 
