@@ -28,7 +28,7 @@ class OrderController extends Controller
 
         $today = now()->toDateString();
         
-        $orders = Order::where('user_id', $userId)->whereDate('date', now())->latest()->get();
+        $orders = Order::where('user_id', $userId)->whereDate('date', now())->latest()->paginate(10);
         if(!$orders){
             return response()->json([
                 'success' => false,

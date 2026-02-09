@@ -95,7 +95,71 @@
                         </tbody>
                         </table>
                     </div>
-                    </section>
+
+                    <!-- paginate -->
+                    <div
+                        v-if="lastPage > 1"
+                        class="flex flex-wrap items-center justify-center gap-2 px-4 py-4 border-t bg-white">
+
+                        <!-- First -->
+                        <button
+                            @click="fetchOrders(1)"
+                            :disabled="currentPage === 1 || loading"
+                            class="px-3 py-1 rounded border bg-slate-100 disabled:opacity-40"
+                        >
+                            First
+                        </button>
+
+                        <!-- Prev -->
+                        <button
+                            @click="fetchOrders(currentPage - 1)"
+                            :disabled="currentPage === 1 || loading"
+                            class="px-3 py-1 rounded border bg-slate-100 disabled:opacity-40"
+                        >
+                            Prev
+                        </button>
+
+                        <!-- Middle pages -->
+                        <button
+                            v-for="page in visiblePages"
+                            :key="page"
+                            @click="fetchOrders(page)"
+                            :disabled="loading"
+                            :class="[
+                            'px-3 py-1 rounded border',
+                            currentPage === page
+                                ? 'bg-slate-900 text-white'
+                                : 'bg-white hover:bg-slate-100'
+                            ]"
+                        >
+                            {{ page }}
+                        </button>
+
+                        <!-- Next -->
+                        <button
+                            @click="fetchOrders(currentPage + 1)"
+                            :disabled="currentPage === lastPage || loading"
+                            class="px-3 py-1 rounded border bg-slate-100 disabled:opacity-40"
+                        >
+                            Next
+                        </button>
+
+                        <!-- Last -->
+                        <button
+                            @click="fetchOrders(lastPage)"
+                            :disabled="currentPage === lastPage || loading"
+                            class="px-3 py-1 rounded border bg-slate-100 disabled:opacity-40"
+                        >
+                            Last
+                        </button>
+
+                        <!-- page info -->
+                        <span class="ml-2 text-xs text-slate-500">
+                            Page {{ currentPage }} of {{ lastPage }}
+                        </span>
+                    </div>
+
+                </section>
 
             </main>
 
@@ -105,7 +169,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import api from "../services/api";
 
@@ -135,18 +199,38 @@ function goDetails(id) {
     router.push(`/order/${id}`);
 }
 
-async function loadOrders() {
-    loading.value = true;
+// pagination states
+const currentPage = ref(1);
+const lastPage = ref(1);
 
+// visible pages (1 left + current + 1 right)
+const visiblePages = computed(() => {
+    const pages = [];
+    const start = Math.max(1, currentPage.value - 1);
+    const end = Math.min(lastPage.value, currentPage.value + 1);
+    for (let p = start; p <= end; p++) pages.push(p);
+    return pages;
+});
+
+// fetch orders by page
+async function fetchOrders(page = 1) {
+    if (page < 1 || page > lastPage.value) return;
+
+    loading.value = true;
     try {
-        const res = await api.post("/order");
-        orders.value = res.data?.data || [];
+        const res = await api.post(`/order?page=${page}`);
+
+        const paginated = res.data?.data || {}; // Laravel paginator object
+        orders.value = paginated.data || [];
+
+        currentPage.value = paginated.current_page || 1;
+        lastPage.value = paginated.last_page || 1;
     } finally {
         loading.value = false;
     }
 }
 
-onMounted(loadOrders);
+onMounted(() => fetchOrders(1));
 
 </script>
 
