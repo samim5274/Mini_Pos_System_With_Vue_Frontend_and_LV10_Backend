@@ -725,7 +725,7 @@ async function  checkOut() {
         }
         
         win.location.href = `/order/invoice-print/${res.data.data.reg}`;
-
+        resetCheckoutFields();
         await refreshCartOnly();
     } catch (err) {
         console.log(err?.response?.data?.message);
@@ -741,6 +741,14 @@ async function refreshCartOnly(){
     carts.value = res.data?.data || [];
     await cartStore.fetchCart();
 }
+
+//reset function
+function resetCheckoutFields() {
+    discount.value = 0;
+    vatRate.value = 0;
+    paidAmount.value = 0;
+}
+
 
 onMounted(() => {
     fetchCartItems();

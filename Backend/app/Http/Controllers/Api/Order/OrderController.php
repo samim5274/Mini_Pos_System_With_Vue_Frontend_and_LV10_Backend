@@ -111,6 +111,14 @@ class OrderController extends Controller
             ], 404);
         }
 
+        $paymentDetails = PaymentDetail::where('reg', $order->reg)->with(['user','paymentMethod'])->where('user_id', $userId)->first();
+        if (!$paymentDetails) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment Details not found.',
+            ], 404);
+        }
+
         $subtotal = $cartItems->sum(fn ($i) => (int)$i->quantity * (float)$i->price);
         $qtyTotal = $cartItems->sum('quantity');
         
@@ -121,10 +129,9 @@ class OrderController extends Controller
             'data' => [
                 'order' => $order,
                 'cartitems' => $cartItems,
+                'paymentDetails'=> $paymentDetails,
                 'summary' => [
-                    'subtotal' => $subtotal,
                     'qty_total' => $qtyTotal,
-                    'grand_total' => (float) $order->total,
                 ],
             ],
         ], 200);
@@ -204,8 +211,7 @@ class OrderController extends Controller
                 $payData->transaction_id    = $tranId;
                 $payData->payment_method_id = $request->payment_method_id;
 
-                $payable = 0;
-                $received = $isCash ? (float) $request->input('received_amount', 0) : $payable;
+                $payable = 0;                
                 $discountRate  = (float) $request->input('discount', 0);
                 $vatRate       = (float) $request->input('vat_rate', 0);
 
@@ -216,6 +222,9 @@ class OrderController extends Controller
                 $afterDiscount = max(0, $total - $discountAmount);
                 $vatAmount = ($afterDiscount * $vatRate) / 100;
                 $payable = $afterDiscount + $vatAmount;
+
+                $received = $isCash ? (float) $request->input('received_amount', 0) : (float) $payable; // non-cash => full payable received
+
                 $payAmount = min($received, $payable);
                 $dueAmount = max(0, $payable - $received);
 
