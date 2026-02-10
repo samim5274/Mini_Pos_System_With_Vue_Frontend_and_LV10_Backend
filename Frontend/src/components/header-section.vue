@@ -42,7 +42,7 @@
             </button>
             <button @click.prevent="cart" class="relative rounded-xl border border-slate-200 bg-white p-2 hover:bg-slate-50">
                 <i class="fa-brands fa-opencart"></i>
-                <span v-if="cartStore.qtyCount > 0" class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">{{ cartStore.qtyCount }}</span>
+                <span v-if="cartStore.itemCount > 0" class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">{{ cartStore.itemCount }}</span>
             </button>
 
             <div class="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2">

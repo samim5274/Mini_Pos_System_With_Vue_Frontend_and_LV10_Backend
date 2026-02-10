@@ -11,6 +11,8 @@ import payment from '../components/payment.vue'
 import order from '../components/order.vue'
 import orderDetails from '../components/order-details.vue'
 import PrintInvoice from '../components/print/print-invoice-80mm.vue'
+import expense from '../components/Expense/expense-overview.vue'
+import createExpense from '../components/Expense/create-expense.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -24,7 +26,9 @@ const routes = [
   { path: '/order/payment/:id', component: payment, meta: {requiresAuth: true} },
   { path: '/order', component: order, meta: {requiresAuth: true} },
   { path: '/order/:id', component: orderDetails, meta: {requiresAuth: true} },
-  { path: '/order/invoice-print/:reg', component: PrintInvoice, meta: {requiresAuth: true} }
+  { path: '/order/invoice-print/:reg', component: PrintInvoice, meta: {requiresAuth: true} },
+  { path: '/expense', component: expense, meta: {requiresAuth: true} },
+  { path: '/create-expense', component: createExpense, meta: {requiresAuth: true} },
 ]
 
 const router = createRouter({

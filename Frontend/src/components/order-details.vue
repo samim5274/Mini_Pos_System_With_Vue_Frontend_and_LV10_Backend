@@ -28,12 +28,12 @@
 
                 <!-- Actions -->
                 <div class="flex flex-wrap gap-2">
-                <button
+                <!-- <button
                     @click="printSummary"
                     class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 active:scale-[.99] transition"
                 >
                     <i class="fa-solid fa-print mr-2"></i> Summary
-                </button>
+                </button> -->
 
                 <button
                     @click="printInvoice(order?.reg)"

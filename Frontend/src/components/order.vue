@@ -63,7 +63,12 @@
                         <tbody class="divide-y">
                             <tr v-for="order in orders" :key="order.id" class="hover:bg-slate-50">
                             <td class="px-4 py-3 font-semibold text-slate-900 whitespace-nowrap">
+                                <button
+                                class="text-blue-700 font-semibold hover:underline"
+                                @click="goDetails(order.id)"
+                                >
                                 INV-{{ order.reg }}
+                                </button>
                             </td>
 
                             <td class="px-4 py-3 text-slate-700 whitespace-nowrap">

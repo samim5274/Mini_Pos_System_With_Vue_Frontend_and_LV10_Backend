@@ -51,6 +51,15 @@
                 Orders
             </router-link>
 
+            <router-link
+                to="/expense"
+                class="nav-item"
+                active-class="nav-active"
+                >
+                <span class="icon"><i class="fa-solid fa-money-bill-transfer"></i></span>
+                Expense
+            </router-link>
+
             <a href="#" class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             <span class="h-9 w-9 rounded-xl bg-slate-100 flex items-center justify-center">👥</span>
             Customers
