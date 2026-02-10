@@ -124,9 +124,6 @@
                                         >
                                         Clear
                                     </button>
-
-                                    <p v-if="successMsg" class="text-sm text-green-600">{{ successMsg }}</p>
-                                    <p v-if="errorMsg" class="text-sm text-red-600">{{ errorMsg }}</p>
                                 </div>
                             </form>
                         </div>
@@ -180,6 +177,8 @@ function resetForm() {
 // get sub category
 async function onCategoryChange() {
     try{
+        form.sub_category_id = "" 
+        subcategories.value = []
         const id = form.category_id;
         const res = await api.get(`/expense/get-subcategory/${id}`);
         subcategories.value = res.data.data;
@@ -216,18 +215,22 @@ async function submitExpense() {
             sub_category_id: form.sub_category_id,
             title: form.title,
             amount: form.amount,
-            remark: form.remark,
+            remark: (form.remark || "").trim(),
         }
 
         console.log("Sending:", payload)
         
         const res = await api.post('/expense/create', payload);
         console.log(res.data?.message);
-        successMsg.value = res.data.message || "Expense added successfully";
-        
+        successMsg.value = res.data?.message || "Expense added successfully";
         resetForm();
     } catch (err){        
-        errorMsg.value = err?.response?.data?.message || "Failed to load data";
+        const msg =
+            err?.response?.data?.message ||
+            Object.values(err?.response?.data?.errors || {})?.[0]?.[0] ||
+            "Failed";
+
+        errorMsg.value = msg;
     } finally{
         loading.value = false;
     }
