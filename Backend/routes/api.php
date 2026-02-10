@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Login\LoginController;
 use App\Http\Controllers\Api\Cart\CartController;
 use App\Http\Controllers\Api\Order\OrderController;
 use App\Http\Controllers\Api\Product\ProductController;
+use App\Http\Controllers\Api\Expense\ExpenseController;
 
 // ======================
 // Public Routes
@@ -44,6 +45,11 @@ Route::middleware(['auth:sanctum', 'throttle:cart'])->group(function () {
         Route::post('/confirm', [OrderController::class, 'confirmOrder']);
         Route::get('/{id}/total', [OrderController::class, 'getTotal']);
         Route::post('/pay', [OrderController::class, 'pay']);
+    });
+
+    Route::prefix('expense')->group(function () {
+        Route::get('/', [ExpenseController::class, 'index']);
+        Route::get('/get-subcategory/{id}', [ExpenseController::class, 'getSubCategory']);
     });
 
 });
