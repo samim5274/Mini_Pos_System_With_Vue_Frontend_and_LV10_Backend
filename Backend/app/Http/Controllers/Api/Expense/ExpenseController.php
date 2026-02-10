@@ -40,4 +40,32 @@ class ExpenseController extends Controller
             ], 500);
         }
     }
+
+    public function store(Request $request){
+        $request->validate([
+            'category_id'      => ['required', 'integer', 'exists:excategories,id'],
+            'sub_category_id'  => ['required', 'integer', 'exists:exsubcategories,id'],
+            'title'            => ['required', 'string', 'max:255'],
+            'amount'           => ['required', 'numeric', 'min:0'],
+            'remark'           => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $userId = Auth::id();
+
+        $expense = Expense::create([
+            'category_id'     => $request->category_id,
+            'sub_category_id' => $request->sub_category_id,
+            'title'           => $request->title,
+            'date'            => now()->toDateString(),
+            'amount'          => $request->amount,
+            'remark'          => $request->remark ?? "",
+            'user_id'         => $userId,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Expense created successfully.',
+            'data'    => $expense,
+        ], 201);
+    }
 }

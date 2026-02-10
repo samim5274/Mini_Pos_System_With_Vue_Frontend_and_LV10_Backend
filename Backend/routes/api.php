@@ -50,6 +50,7 @@ Route::middleware(['auth:sanctum', 'throttle:cart'])->group(function () {
     Route::prefix('expense')->group(function () {
         Route::get('/', [ExpenseController::class, 'index']);
         Route::get('/get-subcategory/{id}', [ExpenseController::class, 'getSubCategory']);
+        Route::post('/create', [ExpenseController::class, 'store']);
     });
 
 });

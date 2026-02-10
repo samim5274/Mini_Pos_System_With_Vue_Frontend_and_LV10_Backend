@@ -49,10 +49,10 @@
                             <form @submit.prevent="submitExpense" class="space-y-5">
                                 <!-- Title -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-2">Title</label>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-2">Title <span class="text-red-500">*</span></label>
                                     <input
                                     v-model="form.title"
-                                    type="text"
+                                    type="text" required
                                     class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     placeholder="e.g. Lunch with team"
                                     />
@@ -60,9 +60,9 @@
                                 <!-- Category + Subcategory -->
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-xs font-semibold text-slate-600 mb-2">Category</label>
-                                        <select v-model="form.category_id" @change="onCategoryChange" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                                            <option value="">-- Select Category --</option>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-2">Category <span class="text-red-500">*</span></label>
+                                        <select v-model="form.category_id" @change="onCategoryChange" required class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                            <option value="" selected disabled>-- Select Category --</option>
                                             <option v-for="cat in categories" :key="cat.id" :value="cat.id">
                                             {{ cat.name }}
                                             </option>
@@ -70,9 +70,9 @@
                                     </div>
 
                                     <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-2">Sub Category</label>
-                                    <select v-model="form.sub_category_id" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                                        <option value="">-- Select Subcategory --</option>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-2">Sub Category <span class="text-red-500">*</span></label>
+                                    <select v-model="form.sub_category_id" required class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                        <option value="" selected disabled>-- Select Subcategory --</option>
                                         <option v-for="sub in subcategories" :key="sub.id" :value="sub.id">
                                         {{ sub.name }}
                                         </option>
@@ -85,9 +85,8 @@
                                 </div>
                                 <!-- Amount -->
                                 <div class="grid grid-cols-1 gap-4">
-                                    
                                     <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-2">Amount (৳)</label>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-2">Amount (৳) <span class="text-red-500">*</span></label>
                                     <input
                                         v-model="form.amount"
                                         type="number"
@@ -100,7 +99,7 @@
                                 </div>
                                 <!-- Remark -->
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-2">Remark</label>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-2">Remark (Optional)</label>
                                     <textarea
                                     v-model="form.remark"
                                     rows="3"
@@ -165,6 +164,7 @@ const form = reactive({
     remark: ""
 });
 
+// form clear
 function resetForm() {
     Object.assign(form, {
         category_id: "",
@@ -174,11 +174,10 @@ function resetForm() {
         remark: ""
     })
 
-    subcategories.value = []
-    successMsg.value = ""
-    errorMsg.value = ""
+    subcategories.value = [];
 }
 
+// get sub category
 async function onCategoryChange() {
     try{
         const id = form.category_id;
@@ -189,7 +188,7 @@ async function onCategoryChange() {
     }
 }
 
-
+// page load
 async function loadCategory(){
     loading.value = true;
     errorMsg.value = "";
@@ -198,6 +197,35 @@ async function loadCategory(){
         const res = await api.get('/expense');
         categories.value = res.data.data.categories;
         // console.log("Categories:", categories.value);
+    } catch (err){        
+        errorMsg.value = err?.response?.data?.message || "Failed to load data";
+    } finally{
+        loading.value = false;
+    }
+}
+
+// create expense
+async function submitExpense() {
+    try{
+        loading.value = true;
+        errorMsg.value = "";
+        successMsg.value = "";
+
+        const payload = {
+            category_id: form.category_id,
+            sub_category_id: form.sub_category_id,
+            title: form.title,
+            amount: form.amount,
+            remark: form.remark,
+        }
+
+        console.log("Sending:", payload)
+        
+        const res = await api.post('/expense/create', payload);
+        console.log(res.data?.message);
+        successMsg.value = res.data.message || "Expense added successfully";
+        
+        resetForm();
     } catch (err){        
         errorMsg.value = err?.response?.data?.message || "Failed to load data";
     } finally{
