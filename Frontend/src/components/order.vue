@@ -26,7 +26,6 @@
                 <section class="xl:col-span-8 rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-4 border-b flex items-center justify-between">
                         <h3 class="text-sm font-bold text-slate-900">Recent Orders</h3>
-
                         <button
                         class="text-sm font-semibold text-blue-700 hover:underline disabled:opacity-50"
                         :disabled="loading"
@@ -72,7 +71,7 @@
                             </td>
 
                             <td class="px-4 py-3 text-slate-700 whitespace-nowrap">
-                                {{ order.date }}
+                                {{ formatDate(order.date) }}
                             </td>
 
                             <td class="px-4 py-3 text-slate-700 whitespace-nowrap">
@@ -104,64 +103,71 @@
                     <!-- paginate -->
                     <div
                         v-if="lastPage > 1"
-                        class="flex flex-wrap items-center justify-center gap-2 px-4 py-4 border-t bg-white">
+                        class="flex flex-col gap-2 border-t border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p class="text-xs text-slate-500">
+                            Showing
+                            <span class="font-semibold text-slate-700">{{ fromItem }}</span>
+                            –
+                            <span class="font-semibold text-slate-700">{{ toItem }}</span>
+                            of
+                            <span class="font-semibold text-slate-700">{{ total }}</span>
+                        </p>
 
-                        <!-- First -->
-                        <button
+                        <div class="flex flex-wrap items-center justify-end gap-2">
+                            <!-- First -->
+                            <button
                             @click="fetchOrders(1)"
                             :disabled="currentPage === 1 || loading"
-                            class="px-3 py-1 rounded border bg-slate-100 disabled:opacity-40"
-                        >
+                            class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                            >
                             First
-                        </button>
+                            </button>
 
-                        <!-- Prev -->
-                        <button
-                            @click="fetchOrders(currentPage - 1)"
+                            <!-- Prev -->
+                            <button
+                            @click="fetchOrders(Math.max(1, currentPage - 1))"
                             :disabled="currentPage === 1 || loading"
-                            class="px-3 py-1 rounded border bg-slate-100 disabled:opacity-40"
-                        >
+                            class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                            >
                             Prev
-                        </button>
+                            </button>
 
-                        <!-- Middle pages -->
-                        <button
+                            <!-- Pages -->
+                            <button
                             v-for="page in visiblePages"
-                            :key="page"
-                            @click="fetchOrders(page)"
-                            :disabled="loading"
+                            :key="String(page)"
+                            :disabled="page === '...' || loading"
+                            @click="page !== '...' && fetchOrders(page)"
+                            class="rounded-lg border px-3 py-1.5 text-xs font-semibold"
                             :class="[
-                            'px-3 py-1 rounded border',
-                            currentPage === page
-                                ? 'bg-slate-900 text-white'
-                                : 'bg-white hover:bg-slate-100'
+                                page === '...'
+                                ? 'border-slate-200 bg-white text-slate-400 cursor-default'
+                                : currentPage === page
+                                    ? 'border-slate-900 bg-slate-900 text-white'
+                                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
                             ]"
-                        >
+                            >
                             {{ page }}
-                        </button>
+                            </button>
 
-                        <!-- Next -->
-                        <button
-                            @click="fetchOrders(currentPage + 1)"
+                            <!-- Next -->
+                            <button
+                            @click="fetchOrders(Math.min(lastPage, currentPage + 1))"
                             :disabled="currentPage === lastPage || loading"
-                            class="px-3 py-1 rounded border bg-slate-100 disabled:opacity-40"
-                        >
+                            class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                            >
                             Next
-                        </button>
+                            </button>
 
-                        <!-- Last -->
-                        <button
+                            <!-- Last -->
+                            <button
                             @click="fetchOrders(lastPage)"
                             :disabled="currentPage === lastPage || loading"
-                            class="px-3 py-1 rounded border bg-slate-100 disabled:opacity-40"
-                        >
+                            class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                            >
                             Last
-                        </button>
-
-                        <!-- page info -->
-                        <span class="ml-2 text-xs text-slate-500">
-                            Page {{ currentPage }} of {{ lastPage }}
-                        </span>
+                            </button>
+                        </div>
                     </div>
 
                 </section>
@@ -175,16 +181,23 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import api from "../services/api";
 
 const router = useRouter();
+const route = useRoute();
 
 import navbar from './navbar.vue'
 import headerSection from './header-section.vue'
 
 const orders = ref([]);
 const loading = ref(false);
+
+// pagination meta
+const currentPage = ref(1);
+const lastPage = ref(1);
+const total = ref(0);
+const perPage = ref(15);
 
 function statusBadge(status) {
     if (status === "Paid")       return "bg-green-50 text-green-700 border-green-200";
@@ -204,38 +217,81 @@ function goDetails(id) {
     router.push(`/order/${id}`);
 }
 
-// pagination states
-const currentPage = ref(1);
-const lastPage = ref(1);
-
 // visible pages (1 left + current + 1 right)
 const visiblePages = computed(() => {
     const pages = [];
-    const start = Math.max(1, currentPage.value - 1);
-    const end = Math.min(lastPage.value, currentPage.value + 1);
-    for (let p = start; p <= end; p++) pages.push(p);
+    const last = lastPage.value;
+    const cur = currentPage.value;
+
+    if (last <= 5) {
+        for (let i = 1; i <= last; i++) pages.push(i);
+        return pages;
+    }
+
+    pages.push(1);
+    if (cur > 3) pages.push("...");
+
+    const start = Math.max(2, cur - 1);
+    const end = Math.min(last - 1, cur + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
+
+    if (cur < last - 2) pages.push("...");
+    pages.push(last);
     return pages;
 });
 
 // fetch orders by page
 async function fetchOrders(page = 1) {
-    if (page < 1 || page > lastPage.value) return;
+    if (page < 1) page = 1;
+    if (page > lastPage.value) page = lastPage.value;
 
     loading.value = true;
     try {
-        const res = await api.post(`/order?page=${page}`);
+        const res = await api.get(`/order?page=${page}`);
 
-        const paginated = res.data?.data || {}; // Laravel paginator object
-        orders.value = paginated.data || [];
+        const paginated = res.data?.data ?? res.data; // Laravel paginator object
+        orders.value = paginated?.data || [];
 
-        currentPage.value = paginated.current_page || 1;
-        lastPage.value = paginated.last_page || 1;
+        currentPage.value = paginated?.current_page ?? page;
+        lastPage.value = paginated?.last_page ?? 1;
+        total.value = paginated?.total ?? 0;
+        perPage.value = paginated?.per_page ?? 15;
+
+        router.replace({ query: { ...route.query, page: currentPage.value } });
     } finally {
         loading.value = false;
     }
 }
 
-onMounted(() => fetchOrders(1));
+function loadOrders() {
+    fetchOrders(currentPage.value);
+}
+
+const fromItem = computed(() => {
+    if (!total.value || total.value === 0) return 0;
+    return (currentPage.value - 1) * perPage.value + 1;
+});
+
+const toItem = computed(() => {
+    return Math.min(currentPage.value * perPage.value, total.value);
+});
+
+function formatDate(dateStr) {
+    if (!dateStr) return "-";
+
+    const d = new Date(dateStr);
+
+    return d.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+    });
+}
+
+onMounted(() => {
+    const page = Number(route.query.page) || 1;
+    fetchOrders(page);
+});
 
 </script>
 

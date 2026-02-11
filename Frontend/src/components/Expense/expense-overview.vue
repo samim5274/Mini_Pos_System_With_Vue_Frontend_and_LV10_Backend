@@ -83,7 +83,7 @@
                                             :class="idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'">
 
                                             <td class="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">
-                                                {{ val?.date || '-' }}
+                                                {{ formatDate(val.date) }}
                                             </td>
 
                                             <td class="px-4 py-3 text-slate-700">
@@ -294,13 +294,25 @@ async function fetchExpense(page = 1) {
 }
 
 const fromItem = computed(() => {
-  if (!total.value || total.value === 0) return 0;
-  return (currentPage.value - 1) * perPage.value + 1;
+    if (!total.value || total.value === 0) return 0;
+    return (currentPage.value - 1) * perPage.value + 1;
 });
 
 const toItem = computed(() => {
-  return Math.min(currentPage.value * perPage.value, total.value);
+    return Math.min(currentPage.value * perPage.value, total.value);
 });
+
+function formatDate(dateStr) {
+    if (!dateStr) return "-";
+
+    const d = new Date(dateStr);
+
+    return d.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
+}
 
 onMounted(() => {
     const page = Number(route.query.page) || 1

@@ -15,7 +15,7 @@ class ExpenseController extends Controller
     public function index(){
         
         $categories = Excategory::all();
-        $expenseDetails = Expense::with(['category','subcategory','user'])->whereDate('date', today())->latest()->paginate(1);
+        $expenseDetails = Expense::with(['category','subcategory','user'])->whereDate('date', today())->latest()->paginate(10);
 
         return response()->json([
             'success' => true,
