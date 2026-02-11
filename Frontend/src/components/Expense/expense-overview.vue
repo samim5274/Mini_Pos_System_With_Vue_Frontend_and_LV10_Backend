@@ -54,74 +54,72 @@
                             <!-- Table -->
                             <div class="overflow-x-auto">
                                 <table class="min-w-full text-sm">
-                                    <!-- Sticky header -->
+                                    <!-- Header -->
                                     <thead class="sticky top-0 z-10 bg-slate-50 text-slate-600">
-                                        <tr class="[&>th]:whitespace-nowrap [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:text-xs [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wide">
-                                        <th>Date</th>
-                                        <th>Title</th>
-                                        <th>Category</th>
-                                        <th>Sub-Category</th>
-                                        <th>Remark</th>
-                                        <th class="text-right">Amount</th>
-                                        <th class="text-right">Action</th>
+                                        <tr class="border-b [&>th]:px-4 [&>th]:py-3 [&>th]:text-xs [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wide">
+                                        <th class="text-left w-[140px]">Date</th>
+                                        <th class="text-left">Details</th>
+                                        <th class="text-right w-[120px]">Amount</th>
+                                        <th class="text-right w-[90px]">Action</th>
                                         </tr>
                                     </thead>
 
                                     <tbody class="divide-y divide-slate-100">
-                                        <!-- Empty state -->
+                                        <!-- Empty -->
                                         <tr v-if="!expenseDetails || expenseDetails.length === 0">
-                                            <td colspan="7" class="px-4 py-10 text-center text-sm text-slate-500">
-                                                No expenses found.
-                                            </td>
+                                        <td colspan="4" class="px-4 py-10 text-center text-sm text-slate-500">
+                                            No expenses found.
+                                        </td>
                                         </tr>
 
                                         <!-- Rows -->
                                         <tr
-                                            v-for="(val, idx) in expenseDetails"
-                                            :key="val.id"
-                                            class="group transition hover:bg-slate-50"
-                                            :class="idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'">
+                                        v-for="(val, idx) in expenseDetails"
+                                        :key="val.id"
+                                        class="transition hover:bg-slate-50"
+                                        :class="idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'"
+                                        >
+                                        <!-- DATE -->
+                                        <td class="px-4 py-3 whitespace-nowrap text-slate-800 font-medium">
+                                            {{ formatDate(val.date) }}
+                                        </td>
 
-                                            <td class="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">
-                                                {{ formatDate(val.date) }}
-                                            </td>
+                                        <!-- DETAILS (clean hierarchy) -->
+                                        <td class="px-4 py-3">
+                                            <p class="font-semibold text-slate-900">
+                                            {{ val?.title || '-' }}
+                                            </p>
 
-                                            <td class="px-4 py-3 text-slate-700">
-                                                <div class="max-w-[260px] truncate font-medium text-slate-800">
-                                                {{ val?.title || '-' }}
-                                                </div>
-                                            </td>
+                                            <p class="text-xs text-slate-500 mt-1">
+                                            {{ val?.category?.name || '-' }}
+                                            <span class="mx-1">•</span>
+                                            {{ val?.subcategory?.name || '-' }}
+                                            </p>
 
-                                            <td class="px-4 py-3 text-slate-700 whitespace-nowrap">
-                                                {{ val?.category?.name || '-' }}
-                                            </td>
+                                            <p
+                                            v-if="val?.remark"
+                                            class="text-xs text-slate-400 italic mt-0.5 truncate max-w-[420px]"
+                                            >
+                                            {{ val.remark }}
+                                            </p>
+                                        </td>
 
-                                            <td class="px-4 py-3 text-slate-700 whitespace-nowrap">
-                                                {{ val?.subcategory?.name || '-' }}
-                                            </td>
+                                        <!-- AMOUNT -->
+                                        <td class="px-4 py-3 text-right font-bold text-slate-900 whitespace-nowrap">
+                                            ৳ {{ Number(val?.amount || 0).toLocaleString() }}
+                                        </td>
 
-                                            <td class="px-4 py-3 text-slate-600">
-                                                <div class="max-w-[260px] truncate">
-                                                {{ val?.remark || '-' }}
-                                                </div>
-                                            </td>
-
-                                            <td class="px-4 py-3 text-right font-semibold text-slate-900 whitespace-nowrap">
-                                                ৳ {{ Number(val?.amount || 0).toLocaleString() }}
-                                            </td>
-
-                                            <td class="px-4 py-3 text-right whitespace-nowrap">
-                                                <button
-                                                type="button"
-                                                class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 group-hover:border-slate-300"
-                                                @click="openExpense(val)"
-                                                >
-                                                Details
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 1 1 1.06-1.06l4.24 4.24a.75.75 0 0 1 0 1.06l-4.24 4.24a.75.75 0 0 1-1.08 0Z" clip-rule="evenodd" />
-                                                </svg>
-                                                </button>
-                                            </td>
+                                        <!-- ACTION -->
+                                        <td class="px-4 py-3 text-right whitespace-nowrap">
+                                            <button
+                                            type="button"
+                                            @click="openExpense(val.id)"
+                                            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                                            >
+                                            Details
+                                            <i class="fa-solid fa-angle-right text-xs"></i>
+                                            </button>
+                                        </td>
                                         </tr>
                                     </tbody>
                                 </table>

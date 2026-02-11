@@ -283,7 +283,7 @@ function formatDate(dateStr) {
 
     return d.toLocaleDateString("en-GB", {
         day: "2-digit",
-        month: "long",
+        month: "short",
         year: "numeric",
     });
 }
