@@ -14,6 +14,12 @@
                 <navbar />
                 <!-- Main Content -->
                 <main class="lg:col-span-9 space-y-6">
+                    <Message
+                        :successMsg="successMsg"
+                        :errorMsg="errorMsg"
+                        @update:successMsg="successMsg = $event"
+                        @update:errorMsg="errorMsg = $event"
+                    />
                     <!-- Header row -->
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
@@ -33,65 +39,164 @@
                     <section class="xl:col-span-8 rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
                         <div class="p-4 border-b flex items-center justify-between">
                             <h3 class="text-sm font-bold text-slate-900">Recent Orders</h3>
-                            <a href="#" class="text-sm font-semibold text-blue-700 hover:underline">View all</a>
+                            <a href="#" class="text-sm font-semibold text-blue-700 hover:underline"><i class="fa-solid fa-rotate"></i></a>
                         </div>
 
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full text-sm">
-                                <thead class="bg-slate-50 text-slate-600">
-                                <tr>
-                                    <th class="text-left font-semibold px-4 py-3">Order</th>
-                                    <th class="text-left font-semibold px-4 py-3">Customer</th>
-                                    <th class="text-left font-semibold px-4 py-3">Amount</th>
-                                    <th class="text-left font-semibold px-4 py-3">Status</th>
-                                    <th class="text-right font-semibold px-4 py-3">Action</th>
-                                </tr>
-                                </thead>
-                                <tbody class="divide-y">
-                                <tr class="hover:bg-slate-50">
-                                    <td class="px-4 py-3 font-semibold text-slate-900">#INV-1021</td>
-                                    <td class="px-4 py-3 text-slate-700">Rahim</td>
-                                    <td class="px-4 py-3 text-slate-700">৳ 1,250</td>
-                                    <td class="px-4 py-3">
-                                    <span class="inline-flex items-center rounded-full bg-green-50 border border-green-100 px-2 py-1 text-xs font-semibold text-green-700">
-                                        Paid
-                                    </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-right">
-                                    <a href="#" class="text-blue-700 font-semibold hover:underline">Details</a>
-                                    </td>
-                                </tr>
+                        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                            <!-- Top bar (optional) -->
+                            <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+                                <p class="text-sm font-semibold text-slate-800">Expense List</p>
+                                <p class="text-xs text-slate-500">
+                                Total: <span class="font-semibold text-slate-700">{{ total }}</span>
+                                </p>
+                            </div>
 
-                                <tr class="hover:bg-slate-50">
-                                    <td class="px-4 py-3 font-semibold text-slate-900">#INV-1020</td>
-                                    <td class="px-4 py-3 text-slate-700">Karim</td>
-                                    <td class="px-4 py-3 text-slate-700">৳ 980</td>
-                                    <td class="px-4 py-3">
-                                    <span class="inline-flex items-center rounded-full bg-yellow-50 border border-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-700">
-                                        Due
-                                    </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-right">
-                                    <a href="#" class="text-blue-700 font-semibold hover:underline">Details</a>
-                                    </td>
-                                </tr>
+                            <!-- Table -->
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full text-sm">
+                                    <!-- Sticky header -->
+                                    <thead class="sticky top-0 z-10 bg-slate-50 text-slate-600">
+                                        <tr class="[&>th]:whitespace-nowrap [&>th]:px-4 [&>th]:py-3 [&>th]:text-left [&>th]:text-xs [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wide">
+                                        <th>Date</th>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Sub-Category</th>
+                                        <th>Remark</th>
+                                        <th class="text-right">Amount</th>
+                                        <th class="text-right">Action</th>
+                                        </tr>
+                                    </thead>
 
-                                <tr class="hover:bg-slate-50">
-                                    <td class="px-4 py-3 font-semibold text-slate-900">#INV-1019</td>
-                                    <td class="px-4 py-3 text-slate-700">Sadia</td>
-                                    <td class="px-4 py-3 text-slate-700">৳ 2,300</td>
-                                    <td class="px-4 py-3">
-                                    <span class="inline-flex items-center rounded-full bg-blue-50 border border-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">
-                                        Processing
-                                    </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-right">
-                                    <a href="#" class="text-blue-700 font-semibold hover:underline">Details</a>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
+                                    <tbody class="divide-y divide-slate-100">
+                                        <!-- Empty state -->
+                                        <tr v-if="!expenseDetails || expenseDetails.length === 0">
+                                            <td colspan="7" class="px-4 py-10 text-center text-sm text-slate-500">
+                                                No expenses found.
+                                            </td>
+                                        </tr>
+
+                                        <!-- Rows -->
+                                        <tr
+                                            v-for="(val, idx) in expenseDetails"
+                                            :key="val.id"
+                                            class="group transition hover:bg-slate-50"
+                                            :class="idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'">
+
+                                            <td class="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">
+                                                {{ val?.date || '-' }}
+                                            </td>
+
+                                            <td class="px-4 py-3 text-slate-700">
+                                                <div class="max-w-[260px] truncate font-medium text-slate-800">
+                                                {{ val?.title || '-' }}
+                                                </div>
+                                            </td>
+
+                                            <td class="px-4 py-3 text-slate-700 whitespace-nowrap">
+                                                {{ val?.category?.name || '-' }}
+                                            </td>
+
+                                            <td class="px-4 py-3 text-slate-700 whitespace-nowrap">
+                                                {{ val?.subcategory?.name || '-' }}
+                                            </td>
+
+                                            <td class="px-4 py-3 text-slate-600">
+                                                <div class="max-w-[260px] truncate">
+                                                {{ val?.remark || '-' }}
+                                                </div>
+                                            </td>
+
+                                            <td class="px-4 py-3 text-right font-semibold text-slate-900 whitespace-nowrap">
+                                                ৳ {{ Number(val?.amount || 0).toLocaleString() }}
+                                            </td>
+
+                                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                                <button
+                                                type="button"
+                                                class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 group-hover:border-slate-300"
+                                                @click="openExpense(val)"
+                                                >
+                                                Details
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 1 1 1.06-1.06l4.24 4.24a.75.75 0 0 1 0 1.06l-4.24 4.24a.75.75 0 0 1-1.08 0Z" clip-rule="evenodd" />
+                                                </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Bottom bar (optional) -->
+                            <div class="flex flex-col gap-2 border-t border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                <p class="text-xs text-slate-500">
+                                    Showing
+                                    <span class="font-semibold text-slate-700">{{ fromItem }}</span>
+                                    –
+                                    <span class="font-semibold text-slate-700">{{ toItem }}</span>
+                                    of
+                                    <span class="font-semibold text-slate-700">{{ total }}</span>
+                                </p>
+
+                                <div class="flex flex-wrap items-center justify-end gap-2">
+                                    <!-- First -->
+                                    <button
+                                    @click="fetchExpense(1)"
+                                    :disabled="currentPage === 1 || loading"
+                                    class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                                    >
+                                    First
+                                    </button>
+
+                                    <!-- Prev -->
+                                    <button
+                                    @click="fetchExpense(Math.max(1, currentPage - 1))"
+                                    :disabled="currentPage === 1 || loading"
+                                    class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                                    >
+                                    Prev
+                                    </button>
+
+                                    <!-- Pages -->
+                                    <button
+                                    v-for="page in visiblePages"
+                                    :key="String(page)"
+                                    :disabled="page === '...' || loading"
+                                    @click="page !== '...' && fetchExpense(page)"
+                                    class="rounded-lg border px-3 py-1.5 text-xs font-semibold"
+                                    :class="[
+                                        page === '...'
+                                        ? 'border-slate-200 bg-white text-slate-400 cursor-default'
+                                        : currentPage === page
+                                            ? 'border-slate-900 bg-slate-900 text-white'
+                                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                                    ]"
+                                    >
+                                    {{ page }}
+                                    </button>
+
+                                    <!-- Next -->
+                                    <button
+                                    @click="fetchExpense(Math.min(lastPage, currentPage + 1))"
+                                    :disabled="currentPage === lastPage || loading"
+                                    class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                                    >
+                                    Next
+                                    </button>
+
+                                    <!-- Last -->
+                                    <button
+                                    @click="fetchExpense(lastPage)"
+                                    :disabled="currentPage === lastPage || loading"
+                                    class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                                    >
+                                    Last
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
+
                     </section>
                 </main>
 
@@ -102,15 +207,104 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from "vue";
+import { useRouter, useRoute } from 'vue-router'
 import api from '../../services/api'
+
 import navbar from '../navbar.vue'
 import headerSection from '../header-section.vue'
+import Message from '../message.vue'
 
-const router = useRouter()
+const router = useRouter();
+const route = useRoute()
+
+const loading = ref(false);
+const errorMsg = ref("");
+const successMsg = ref("");
+const expenseDetails = ref([]);
+const pagination = ref(null);  
 
 async function create() {
     router.push('/create-expense');
 }
+
+// paginate section 
+
+const currentPage = ref(1);
+const lastPage = ref(1);
+
+const total = ref(0)
+const perPage = ref(15)
+
+const visiblePages = computed(() => {
+    const pages = [];
+    const last = lastPage.value;
+    const cur = currentPage.value;
+
+    if (last <= 5) {
+        for (let i = 1; i <= last; i++) pages.push(i);
+        return pages;
+    }
+
+    pages.push(1);
+
+    if (cur > 3) pages.push("...");
+
+    const start = Math.max(2, cur - 1);
+    const end = Math.min(last - 1, cur + 1);
+
+    for (let i = start; i <= end; i++) pages.push(i);
+
+    if (cur < last - 2) pages.push("...");
+
+    pages.push(last);
+    return pages;
+});
+
+
+// fetch expense details
+async function fetchExpense(page = 1) {
+    try{
+        loading.value = true;
+        errorMsg.value = "";
+
+        const res = await api.get(`/expense?page=${page}`);
+
+        const paginated = res.data?.data?.expenseDetails; 
+        expenseDetails.value = paginated?.data || [];
+
+        currentPage.value = paginated?.current_page ?? page;
+        lastPage.value = paginated?.last_page ?? 1;
+
+        total.value = paginated?.total ?? 0;
+        perPage.value = paginated?.per_page ?? 15;
+
+        router.replace({ query: { ...route.query, page: currentPage.value } });
+        // console.log(expenseDetails.value);
+    } catch (err){        
+        const msg =
+            err?.response?.data?.message ||
+            Object.values(err?.response?.data?.errors || {})?.[0]?.[0] ||
+            "Failed";
+
+        errorMsg.value = msg;
+    } finally{
+        loading.value = false;
+    }
+}
+
+const fromItem = computed(() => {
+  if (!total.value || total.value === 0) return 0;
+  return (currentPage.value - 1) * perPage.value + 1;
+});
+
+const toItem = computed(() => {
+  return Math.min(currentPage.value * perPage.value, total.value);
+});
+
+onMounted(() => {
+    const page = Number(route.query.page) || 1
+    fetchExpense(page)
+});
 
 </script>

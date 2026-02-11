@@ -15,13 +15,14 @@ class ExpenseController extends Controller
     public function index(){
         
         $categories = Excategory::all();
-        
+        $expenseDetails = Expense::with(['category','subcategory','user'])->whereDate('date', today())->latest()->paginate(1);
 
         return response()->json([
             'success' => true,
             'message' => "Get all expense category & sub-category.",
             'data' => [
                 'categories' => $categories,
+                'expenseDetails' => $expenseDetails,
             ]
         ]);
     }

@@ -58,40 +58,37 @@
 
         <!-- TOTALS -->
         <table class="totals-table">
-        <tr class="separator">
+        <tbody>
+            <tr class="separator">
             <td>Subtotal:</td>
             <td>৳{{ money(orderSubtotal) }}</td>
-        </tr>
-        <tr>
-            <td>
-                Discount ({{ paymentDetails?.discount_rate ?? 0 }}%)
-            </td>
-            <td>
-                - ৳{{ money(orderDiscount) }}
-            </td>
             </tr>
 
             <tr>
-            <td>
-                VAT ({{ paymentDetails?.vat_rate ?? 0 }}%)
-            </td>
-            <td>
-                + ৳{{ money(orderVat) }}
-            </td>
-        </tr>
+            <td>Discount ({{ paymentDetails?.discount_rate ?? 0 }}%)</td>
+            <td>- ৳{{ money(orderDiscount) }}</td>
+            </tr>
 
-        <tr class="separator final-total">
+            <tr>
+            <td>VAT ({{ paymentDetails?.vat_rate ?? 0 }}%)</td>
+            <td>+ ৳{{ money(orderVat) }}</td>
+            </tr>
+
+            <tr class="separator final-total">
             <td>Payable:</td>
             <td>৳{{ money(orderPayable) }}</td>
-        </tr>
-        <tr>
+            </tr>
+
+            <tr>
             <td>Paid:</td>
             <td>৳{{ money(orderPaid) }}</td>
-        </tr>
-        <tr>
+            </tr>
+
+            <tr>
             <td class="final-total">Due:</td>
             <td class="final-total">৳{{ money(orderDue) }}</td>
-        </tr>
+            </tr>
+        </tbody>
         </table>
 
         <div class="note">

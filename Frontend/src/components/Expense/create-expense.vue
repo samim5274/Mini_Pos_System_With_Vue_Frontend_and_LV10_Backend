@@ -14,6 +14,12 @@
                 <navbar />
                 <!-- Main Content -->
                 <main class="lg:col-span-9 space-y-6">
+                    <Message
+                        :successMsg="successMsg"
+                        :errorMsg="errorMsg"
+                        @update:successMsg="successMsg = $event"
+                        @update:errorMsg="errorMsg = $event"
+                    />
                     <!-- Header row -->
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
@@ -143,6 +149,7 @@ import api from '../../services/api';
 
 import navbar from '../navbar.vue';
 import headerSection from '../header-section.vue';
+import Message from '../message.vue'
 
 const router = useRouter();
 

@@ -78,73 +78,12 @@
                                     </button>
                                 </div>
 
-                                <Transition name="toast">
-                                    <div
-                                        v-if="successMsg"
-                                        class="fixed top-5 right-5 z-[9999] w-[320px] rounded-2xl border border-green-200 bg-white shadow-lg">
-                                        <div class="flex gap-3 p-4">
-                                        <!-- icon -->
-                                        <div
-                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-700">
-                                            <!-- ✓ -->
-                                            <i class="fa-regular fa-circle-check"></i>
-                                        </div>
-
-                                        <div class="flex-1">
-                                            <p class="text-sm font-semibold text-slate-900">Success</p>
-                                            <p class="mt-0.5 text-sm text-slate-600">
-                                            {{ successMsg }}
-                                            </p>
-                                        </div>
-
-                                        <!-- close -->
-                                        <button
-                                            class="ml-2 rounded-lg px-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                                            @click="successMsg = ''"
-                                            aria-label="Close">
-                                            ✕
-                                        </button>
-                                        </div>
-
-                                        <!-- progress bar -->
-                                        <div class="h-1 w-full overflow-hidden rounded-b-2xl bg-green-50">
-                                        <div class="toast-bar h-full bg-green-500"></div>
-                                        </div>
-                                    </div>
-                                </Transition>
-                                <Transition name="toast">
-                                    <div
-                                        v-if="errorMsg"
-                                        class="fixed top-5 right-5 z-[9999] w-[320px] rounded-2xl border border-red-200 bg-white shadow-lg">
-                                        <div class="flex gap-3 p-4">
-                                        <!-- icon -->
-                                        <div
-                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-700">
-                                            <i class="fa-solid fa-x"></i>
-                                        </div>
-
-                                        <div class="flex-1">
-                                            <p class="text-sm font-semibold text-slate-900">Failed</p>
-                                            <p class="mt-0.5 text-sm text-slate-600">
-                                            {{ errorMsg }}
-                                            </p>
-                                        </div>
-
-                                        <!-- close -->
-                                        <button
-                                            class="ml-2 rounded-lg px-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                                            @click="errorMsg = ''"
-                                            aria-label="Close">
-                                            ✕
-                                        </button>
-                                        </div>
-
-                                        <!-- progress bar -->
-                                        <div class="h-1 w-full overflow-hidden rounded-b-2xl bg-red-50">
-                                        <div class="toast-bar h-full bg-red-500"></div>
-                                        </div>
-                                    </div>
-                                </Transition>
+                                <Message
+                                    :successMsg="successMsg"
+                                    :errorMsg="errorMsg"
+                                    @update:successMsg="successMsg = $event"
+                                    @update:errorMsg="errorMsg = $event"
+                                />
 
                                 <!-- Loading -->
                                 <div v-if="loading" class="p-8 text-center text-slate-600">
@@ -439,6 +378,7 @@ const cartStore = useCartStore();
 
 import Navbar from "./navbar.vue";
 import HeaderSection from "./header-section.vue";
+import Message from './message.vue'
 
 const router = useRouter()
 
@@ -760,24 +700,5 @@ onMounted(() => {
 </script>
 
 <style>
-/* Animation */
-.toast-enter-active,
-.toast-leave-active {
-    transition: all 0.25s ease;
-}
-.toast-enter-from,
-.toast-leave-to {
-    opacity: 0;
-    transform: translateY(-10px) scale(0.98);
-}
 
-/* Progress bar animation */
-.toast-bar {
-    width: 100%;
-    animation: shrink 2.5s linear forwards;
-}
-@keyframes shrink {
-    from { width: 100%; }
-    to { width: 0%; }
-}
 </style>
