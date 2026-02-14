@@ -11,7 +11,7 @@ class Excategory extends Model
 
     protected $fillable = ['name'];
 
-    public function category()
+    public function subcategories()
     {
         return $this->HasMany(Exsubcategory::class, 'category_id', 'id');
     }

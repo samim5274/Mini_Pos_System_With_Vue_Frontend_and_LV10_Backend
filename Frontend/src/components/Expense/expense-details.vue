@@ -72,13 +72,13 @@
                                 Print
                             </button>
 
-                            <button
+                            <!-- <button
                                 type="button"
                                 @click="editExpense()"
                                 class="h-10 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200">
                                 <i class="fa-solid fa-pen-to-square"></i>
                                 Edit
-                            </button>
+                            </button> -->
 
                             <button
                                 type="button"
@@ -220,21 +220,21 @@ async function fetchExpense(id){
 //   router.push(`/expense-edit/${id}`); // তোমার route অনুযায়ী change করো
 // }
 
-// async function deleteExpense() {
-//   const id = route.params.id;
-//   if (!confirm("Are you sure you want to delete this expense?")) return;
+async function deleteExpense() {
+    const id = route.params.id;
+    if (!confirm("Are you sure you want to delete this expense?")) return;
 
-//   try {
-//     loading.value = true;
-//     await api.delete(`/expense/${id}`);
-//     successMsg.value = "Expense deleted successfully.";
-//     router.push("/expense"); // list page
-//   } catch (err) {
-//     errorMsg.value = err?.response?.data?.message || "Delete failed.";
-//   } finally {
-//     loading.value = false;
-//   }
-// }
+    try {
+        loading.value = true;
+        await api.delete(`expense/delete/${id}`);
+        successMsg.value = "Expense deleted successfully.";
+        router.push("/expense"); // list page
+    } catch (err) {
+        errorMsg.value = err?.response?.data?.message || "Delete failed.";
+    } finally {
+        loading.value = false;
+    }
+}
 
 function printExpense(id) {
     if (!id) return;

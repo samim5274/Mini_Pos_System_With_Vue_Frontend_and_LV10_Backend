@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Expense;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 use Illuminate\Support\Facades\Auth;
 use App\Models\Excategory;
@@ -123,6 +124,173 @@ class ExpenseController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function delete($id){
+        try{
+            $userId = auth()->id();
+            $expense = Expense::with(['category','subcategory','user'])->where('user_id', $userId)->findOrFail($id);
+            if(!$expense){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Expense not found. Please try again.',
+                ], 404);
+            }
+
+            $expense->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Expense delete successfully.",
+            ], 200);
+            
+        } catch (\Throwable $e) {
+            \Log::error("Expense print error: ".$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function setting(){
+        try{
+
+            $categories = Excategory::paginate(5, ['*'], 'category_page');
+            $subcategories = Exsubcategory::with('category')->paginate(5, ['*'], 'subcategory_page');
+            
+            if($categories->isEmpty() && $subcategories->isEmpty()){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No Category or Sub-Category found.',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Get category and Sub-category feteched successfully.",
+                'data' => [
+                    'categories' => $categories,
+                    'subcategories' => $subcategories,
+                ],
+            ], 200);
+            
+        } catch (\Throwable $e) {
+            \Log::error("Expense print error: ".$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function storeCategory(Request $request){
+        try{
+            $request->validate([
+                'name' => 'required|string|max:100|unique:excategories,name'
+            ]);
+
+            $category = Excategory::create([
+                'name' => $request->name
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Category created successfully.',
+                'data' => $category
+            ], 201);
+        } catch (\Throwable $e) {
+            \Log::error("Expense print error: ".$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function storeSubCategory(Request $request){
+        try{
+            $request->validate([
+                'category_id' => 'required|integer|exists:excategories,id',
+                'name'        => 'required|string|max:100',
+            ]);
+
+            $exists = Exsubcategory::where('category_id', $request->category_id)
+                ->where('name', $request->name)
+                ->exists();
+
+            if ($exists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This sub-category already exists in this category.',
+                ], 409);
+            }
+
+            $sub = Exsubcategory::create([
+                'category_id' => $request->category_id,
+                'name'        => $request->name,
+            ]);
+
+            $sub->load('category');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sub-category created successfully.',
+                'data'    => $sub,
+            ], 201);
+        } catch (\Throwable $e) {
+            \Log::error("Expense print error: ".$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function deleteCategory($id){
+        try{
+            $category = Excategory::withCount('subcategories')->findOrFail($id);
+            if ($category->subcategories_count > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete category because it has sub-categories.',
+                ], 409);
+            }           
+
+            $category->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Category deleted successfully.',
+            ], 200);
+
+        } catch (\Throwable $e) {
+            \Log::error("Expense print error: ".$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => "Cannot delete category because it has sub-categories.",
             ], 500);
         }
     }

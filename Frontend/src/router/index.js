@@ -15,6 +15,7 @@ import expense from '../components/Expense/expense-overview.vue'
 import createExpense from '../components/Expense/create-expense.vue'
 import expenseDetails from '../components/Expense/expense-details.vue'
 import printExpenseA4Halft from '../components/print/print-expense-a4-halft.vue'
+import settingExpense from '../components/Expense/setting.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -29,10 +30,12 @@ const routes = [
   { path: '/order', component: order, meta: {requiresAuth: true} },
   { path: '/order/:id', component: orderDetails, meta: {requiresAuth: true} },
   { path: '/order/invoice-print/:reg', component: PrintInvoice, meta: {requiresAuth: true} },
+
   { path: '/expense', component: expense, meta: {requiresAuth: true} },
   { path: '/create-expense', component: createExpense, meta: {requiresAuth: true} },
   { path: '/expense-details/:id', component: expenseDetails, meta: {requiresAuth: true} },
   { path: '/expense-print/:id', component: printExpenseA4Halft, meta: {requiresAuth: true} },
+  { path: '/expense-setting', component: settingExpense, meta: {requiresAuth: true} },
 ]
 
 const router = createRouter({

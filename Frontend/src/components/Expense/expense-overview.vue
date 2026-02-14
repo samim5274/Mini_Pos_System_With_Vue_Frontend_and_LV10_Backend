@@ -30,7 +30,7 @@
                             <button @click="create" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                             <i class="fa-regular fa-pen-to-square me-1"></i> Create
                             </button>
-                            <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black">
+                            <button @click="setting" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black">
                             <i class="fa-solid fa-gear"></i>
                             </button>
                         </div>
@@ -230,11 +230,14 @@ const route = useRoute()
 const loading = ref(false);
 const errorMsg = ref("");
 const successMsg = ref("");
-const expenseDetails = ref([]);
-const pagination = ref(null);  
+const expenseDetails = ref([]); 
 
 async function create() {
     router.push('/create-expense');
+}
+
+async function setting() {
+    router.push('/expense-setting');
 }
 
 // paginate section 

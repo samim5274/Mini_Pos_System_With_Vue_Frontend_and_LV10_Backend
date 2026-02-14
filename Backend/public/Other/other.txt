@@ -2,7 +2,8 @@
 | ------------------------- | ---- |
 | Not logged in             | 401  |
 | Forbidden (no permission) | 403  |
-| Not found (product নেই)   | 404  |
+| Not found (product নেই)    | 404  |
+| Conflict                  | 409  |
 | Validation error          | 422  |
 | Success create            | 201  |
 | Success fetch             | 200  |
