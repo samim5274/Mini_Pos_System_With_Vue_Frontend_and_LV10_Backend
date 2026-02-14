@@ -13,11 +13,11 @@ class Excategory extends Model
 
     public function subcategories()
     {
-        return $this->HasMany(Exsubcategory::class, 'category_id', 'id');
+        return $this->hasMany(Exsubcategory::class, 'category_id', 'id');
     }
 
     public function expenses()
     {
-        return $this->HasMany(Expenses::class, 'category_id', 'id');
+        return $this->hasMany(Expense::class, 'category_id', 'id');
     }
 }

@@ -355,15 +355,38 @@ async function deleteCategory(id) {
         errorMsg.value =
         err?.response?.data?.message ||
         Object.values(err?.response?.data?.errors || {})?.[0]?.[0] ||
-        "Failed to create category.";
+        "Failed to deleted category.";
     } finally {
         loading.value = false;
     }
 }
 
 async function deleteSubCategory(id) {
-    // await api.delete(`/expense/subcategory/${id}`);
-    await fetchSetting(category.value?.current_page ?? 1, subcategory.value?.current_page ?? 1);
+    if (!id) return;
+
+    const ok = confirm("Are you sure you want to delete this sub-category?");
+    if (!ok) return;
+
+    loading.value = true;
+    errorMsg.value = "";
+    successMsg.value = "";
+
+    try {
+        const res = await api.delete(`/expense/subcategory/${id}`);
+        successMsg.value = res.data?.message || "Sub-category deleted successfully.";
+
+        await fetchSetting(
+            category.value?.current_page ?? 1,
+            subcategory.value?.current_page ?? 1
+        );
+    } catch (err) {
+        errorMsg.value =
+        err?.response?.data?.message ||
+        Object.values(err?.response?.data?.errors || {})?.[0]?.[0] ||
+        "Failed to deleted sub-category.";
+    } finally {
+        loading.value = false;
+    }
 }
 
 onMounted(() => {

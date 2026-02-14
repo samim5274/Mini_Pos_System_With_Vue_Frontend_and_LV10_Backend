@@ -18,6 +18,6 @@ class Exsubcategory extends Model
 
     public function expenses()
     {
-        return $this->HasMany(Expenses::class, 'sub_category_id', 'id');
+        return $this->hasMany(Expense::class, 'sub_category_id', 'id');
     }
 }

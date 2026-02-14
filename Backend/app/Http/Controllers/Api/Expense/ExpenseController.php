@@ -266,14 +266,14 @@ class ExpenseController extends Controller
     }
 
     public function deleteCategory($id){
-        try{
+        try {
             $category = Excategory::withCount('subcategories')->findOrFail($id);
             if ($category->subcategories_count > 0) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Cannot delete category because it has sub-categories.',
                 ], 409);
-            }           
+            }
 
             $category->delete();
 
@@ -282,15 +282,61 @@ class ExpenseController extends Controller
                 'message' => 'Category deleted successfully.',
             ], 200);
 
+        } catch (ModelNotFoundException $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Category not found.',
+            ], 404);
+
         } catch (\Throwable $e) {
-            \Log::error("Expense print error: ".$e->getMessage(), [
+
+            \Log::error("Category delete error: " . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => "Cannot delete category because it has sub-categories.",
+                // 'message' => 'Failed to delete category.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function deleteSubCategory($id){
+        try{
+            $sub = Exsubcategory::withCount('expenses')->findOrFail($id);
+            if ($sub->expenses_count > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete sub-category because it has expenses.',
+                ], 409);
+            }           
+
+            $sub->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sub-category deleted successfully.',
+            ], 200);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sub-category not found.',
+            ], 404);
+
+        } catch (\Throwable $e) {
+            \Log::error("Sub-category delete error: ".$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                // 'message' => 'Failed to delete sub-category.',
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
