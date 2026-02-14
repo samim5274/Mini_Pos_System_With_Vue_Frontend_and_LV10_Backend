@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Excategory;
 use App\Models\Exsubcategory;
 use App\Models\Expense;
+use App\Models\Company;
 
 class ExpenseController extends Controller
 {
@@ -68,5 +69,61 @@ class ExpenseController extends Controller
             'message' => 'Expense created successfully.',
             'data'    => $expense,
         ], 201);
+    }
+
+    public function detailsShow($id){
+        try{
+            $userId = auth()->id();
+            $expense = Expense::with(['category','subcategory','user'])->where('user_id', $userId)->findOrFail($id);
+            if(!$expense){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Expense not found. Please try again.',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $expense
+            ], 200);
+            
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong',
+            ], 500);
+        }
+    }
+
+    public function print($id){
+        try{
+            $userId = auth()->id();
+            $expense = Expense::with(['category','subcategory','user'])->where('user_id', $userId)->findOrFail($id);
+            if(!$expense){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Expense not found. Please try again.',
+                ], 404);
+            }
+
+            $company = Company::first();
+
+            return response()->json([
+                'success' => true,
+                'data' => $expense,
+                'company' => $company,
+            ], 200);
+            
+        } catch (\Throwable $e) {
+            \Log::error("Expense print error: ".$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

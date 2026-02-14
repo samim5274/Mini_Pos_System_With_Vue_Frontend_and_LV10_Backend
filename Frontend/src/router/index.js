@@ -13,6 +13,8 @@ import orderDetails from '../components/order-details.vue'
 import PrintInvoice from '../components/print/print-invoice-80mm.vue'
 import expense from '../components/Expense/expense-overview.vue'
 import createExpense from '../components/Expense/create-expense.vue'
+import expenseDetails from '../components/Expense/expense-details.vue'
+import printExpenseA4Halft from '../components/print/print-expense-a4-halft.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -29,6 +31,8 @@ const routes = [
   { path: '/order/invoice-print/:reg', component: PrintInvoice, meta: {requiresAuth: true} },
   { path: '/expense', component: expense, meta: {requiresAuth: true} },
   { path: '/create-expense', component: createExpense, meta: {requiresAuth: true} },
+  { path: '/expense-details/:id', component: expenseDetails, meta: {requiresAuth: true} },
+  { path: '/expense-print/:id', component: printExpenseA4Halft, meta: {requiresAuth: true} },
 ]
 
 const router = createRouter({

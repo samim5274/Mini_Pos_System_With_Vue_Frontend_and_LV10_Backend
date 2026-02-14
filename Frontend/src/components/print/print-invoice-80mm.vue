@@ -92,7 +92,7 @@
         </table>
 
         <div class="note">
-        Developed by <strong>ARS Soft Solution</strong> || +8801533021557
+        Powered by <strong>SAMIM-HosseN</strong> || +8801533021557
         </div>
 
         <div class="note">.</div>

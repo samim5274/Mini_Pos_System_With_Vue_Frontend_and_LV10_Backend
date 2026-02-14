@@ -39,7 +39,11 @@
                     <section class="xl:col-span-8 rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
                         <div class="p-4 border-b flex items-center justify-between">
                             <h3 class="text-sm font-bold text-slate-900">Recent Orders</h3>
-                            <a href="#" class="text-sm font-semibold text-blue-700 hover:underline"><i class="fa-solid fa-rotate"></i></a>
+                            <button 
+                                @click="fetchExpense(currentPage)" :class="{ 'opacity-60 pointer-events-none': loading }"
+                                class="text-sm font-semibold text-blue-700 hover:underline">
+                                <i class="fa-solid fa-rotate"></i>
+                            </button>
                         </div>
 
                         <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
@@ -112,20 +116,27 @@
                                         <!-- ACTION -->
                                         <td class="px-4 py-3 text-right whitespace-nowrap">
                                             <button
-                                            type="button"
-                                            @click="openExpense(val.id)"
-                                            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-                                            >
-                                            Details
-                                            <i class="fa-solid fa-angle-right text-xs"></i>
+                                                type="button"
+                                                @click="PrintExpense(val.id)"                                                
+                                                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                                                >
+                                                <i class="fa-solid fa-print"></i>
                                             </button>
+                                            <button
+                                                type="button"
+                                                @click="openExpense(val.id)"
+                                                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                                                >
+                                                <i class="fa-solid fa-sliders"></i>
+                                                <!-- <i class="fa-solid fa-angle-right text-xs"></i> -->
+                                            </button>                                            
                                         </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
 
-                            <!-- Bottom bar (optional) -->
+                            <!-- Pegination section -->
                             <div class="flex flex-col gap-2 border-t border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                                 <p class="text-xs text-slate-500">
                                     Showing
@@ -143,7 +154,7 @@
                                     :disabled="currentPage === 1 || loading"
                                     class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
                                     >
-                                    First
+                                    <i class="fa-solid fa-angles-left"></i>
                                     </button>
 
                                     <!-- Prev -->
@@ -152,7 +163,7 @@
                                     :disabled="currentPage === 1 || loading"
                                     class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
                                     >
-                                    Prev
+                                    <i class="fa-solid fa-chevron-left"></i>
                                     </button>
 
                                     <!-- Pages -->
@@ -179,7 +190,7 @@
                                     :disabled="currentPage === lastPage || loading"
                                     class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
                                     >
-                                    Next
+                                    <i class="fa-solid fa-angle-right"></i>
                                     </button>
 
                                     <!-- Last -->
@@ -188,7 +199,7 @@
                                     :disabled="currentPage === lastPage || loading"
                                     class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
                                     >
-                                    Last
+                                    <i class="fa-solid fa-angles-right"></i>
                                     </button>
                                 </div>
                             </div>
@@ -227,10 +238,8 @@ async function create() {
 }
 
 // paginate section 
-
 const currentPage = ref(1);
 const lastPage = ref(1);
-
 const total = ref(0)
 const perPage = ref(15)
 
@@ -310,6 +319,27 @@ function formatDate(dateStr) {
         month: "short",
         year: "numeric",
     });
+}
+
+function openExpense(id) {
+    router.push(`/expense-details/${id}`);
+}
+
+function PrintExpense(id){
+    if (!id) return;
+    
+    const win = window.open("about:blank", "_blank");
+
+    if (!win) {
+        alert("Popup blocked!");
+        return;
+    }
+
+    const url = `/expense-print/${id}`;
+    console.log("button clicked", url);
+
+    win.location.href = url;
+    win.focus();
 }
 
 onMounted(() => {

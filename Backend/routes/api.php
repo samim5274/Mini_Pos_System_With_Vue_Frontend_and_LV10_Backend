@@ -51,6 +51,8 @@ Route::middleware(['auth:sanctum', 'throttle:cart'])->group(function () {
         Route::get('/', [ExpenseController::class, 'index']);
         Route::get('/get-subcategory/{id}', [ExpenseController::class, 'getSubCategory']);
         Route::post('/create', [ExpenseController::class, 'store']);
+        Route::get('/details/{id}', [ExpenseController::class, 'detailsShow']);
+        Route::get('/print/{id}', [ExpenseController::class, 'print']);
     });
 
 });
