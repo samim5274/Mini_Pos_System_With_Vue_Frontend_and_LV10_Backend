@@ -371,4 +371,34 @@ class ExpenseController extends Controller
             ], 500);
         }
     }
+
+    public function editCategory(Request $request, $id){
+        try{
+            $request->validate([
+                'name' => 'required|string|max:100|unique:excategories,name,' . $id,
+            ]);
+
+            $cat = Excategory::findOrFail($id);
+
+            $cat->update([
+                'name' => $request->name,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Category updated successfully.',
+                'data' => $cat
+            ], 200);
+        } catch (\Throwable $e) {
+            \Log::error("Category update error: ".$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update category.',
+            ], 500);
+        }
+    }
 }

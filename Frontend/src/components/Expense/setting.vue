@@ -77,7 +77,7 @@
                                         <div class="flex gap-2">
                                             <button
                                                 class="rounded-lg border border-rose-200 px-3 py-1 text-xs text-rose-700 hover:bg-rose-50"
-                                                @click="deleteCategory(cat.id)">
+                                                @click="openEditCategory(cat)">
                                                 <i class="fa-solid fa-pen-to-square"></i>
                                             </button>
                                             <button
@@ -113,6 +113,48 @@
                                         <i class="fa-solid fa-angle-right"></i>
                                     </button>
                                 </div>
+
+                                <!-- popup section -->
+                                <!-- Edit Category Modal -->
+                                <div
+                                v-if="showCategoryEditModal"
+                                class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+                                @click.self="closeEditCategory"
+                                >
+                                    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                                        <h2 class="text-lg font-bold text-slate-900 mb-4">Edit Category</h2>
+
+                                        <form @submit.prevent="updateCategory" class="space-y-4">
+                                        <div>
+                                            <label class="text-xs font-semibold text-slate-600">Category name</label>
+                                            <input
+                                            v-model="editCategoryName"
+                                            type="text"
+                                            class="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-200"
+                                            placeholder="e.g. Transport"
+                                            />
+                                        </div>
+
+                                        <div class="flex justify-end gap-2 pt-4">
+                                            <button
+                                            type="button"
+                                            @click="closeEditCategory"
+                                            class="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                                            >
+                                            Cancel
+                                            </button>
+
+                                            <button
+                                            type="submit"
+                                            class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+                                            >
+                                            Update
+                                            </button>
+                                        </div>
+                                        </form>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 
@@ -456,7 +498,6 @@ async function deleteSubCategory(id) {
 const showEditModal = ref(false);
 const editSubCategoryId = ref(null);
 const editSubCategoryName = ref("");
-const editCategoryId = ref("");
 
 function editSubCategory(id){
     const sub = subcategory.value?.data?.find(s => s.id === id);
@@ -504,6 +545,58 @@ async function updateSubCategory() {
         errorMsg.value =
         err?.response?.data?.message ||
         "Failed to update sub-category.";
+    } finally {
+        loading.value = false;
+    }
+}
+
+// edit category popup start
+const showCategoryEditModal = ref(false);
+const editCategoryName = ref("");
+const editCategoryId = ref("");
+
+function openEditCategory(cat) {
+    if (!cat) return;
+    editCategoryId.value = cat.id;
+    editCategoryName.value = cat.name || "";
+    showCategoryEditModal.value = true;
+}
+
+function closeEditCategory() {
+    showCategoryEditModal.value = false;
+    editCategoryId.value = null;
+    editCategoryName.value = "";
+}
+
+async function updateCategory() {
+    const name = editCategoryName.value.trim();
+    if (!name) {
+        errorMsg.value = "Category name is required.";
+        return;
+    }
+
+    loading.value = true;
+    errorMsg.value = "";
+    successMsg.value = "";
+
+    try {
+        const res = await api.put(`/expense/edit/category/${editCategoryId.value}`, {
+            name
+        });
+
+        successMsg.value = res.data?.message || "Category updated successfully.";
+        closeEditCategory();
+
+        await fetchSetting(
+            category.value?.current_page ?? 1,
+            subcategory.value?.current_page ?? 1
+        );
+
+    } catch (err) {
+        errorMsg.value =
+        err?.response?.data?.message ||
+        Object.values(err?.response?.data?.errors || {})?.[0]?.[0] ||
+        "Failed to update category.";
     } finally {
         loading.value = false;
     }
