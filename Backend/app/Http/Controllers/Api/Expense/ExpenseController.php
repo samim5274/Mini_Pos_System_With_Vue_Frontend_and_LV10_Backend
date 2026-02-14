@@ -340,4 +340,35 @@ class ExpenseController extends Controller
             ], 500);
         }
     }
+
+    public function editSubCategory(Request $request, $id){
+        try{
+            $request->validate([
+                'category_id' => 'required|exists:excategories,id',
+                'name' => 'required|string|max:100',
+            ]);
+
+            $sub = Exsubcategory::findOrFail($id);
+
+            $sub->update([
+                'category_id' => $request->category_id,
+                'name' => $request->name,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sub-category updated successfully.'
+            ], 200);
+        } catch (\Throwable $e) {
+            \Log::error("Expense print error: ".$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

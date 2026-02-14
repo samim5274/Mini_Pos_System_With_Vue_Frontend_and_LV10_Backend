@@ -78,7 +78,12 @@
                                             <button
                                                 class="rounded-lg border border-rose-200 px-3 py-1 text-xs text-rose-700 hover:bg-rose-50"
                                                 @click="deleteCategory(cat.id)">
-                                                Delete
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </button>
+                                            <button
+                                                class="rounded-lg border border-rose-200 px-3 py-1 text-xs text-rose-700 hover:bg-rose-50"
+                                                @click="deleteCategory(cat.id)">
+                                                <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </div>
                                     </li>
@@ -130,9 +135,6 @@
                                             {{ c.name }}
                                         </option>
                                         </select>
-                                        <p class="mt-1 text-[11px] text-slate-500">
-                                        Tip: category list থেকে “Select” চাপলেও auto set হবে।
-                                        </p>
                                     </div>
 
                                     <div>
@@ -175,12 +177,20 @@
                                             </div>
                                         </div>
 
-                                        <button
-                                        class="rounded-lg border border-rose-200 px-3 py-1 text-xs text-rose-700 hover:bg-rose-50"
-                                        @click="deleteSubCategory(sub.id)"
-                                        >
-                                        Delete
-                                        </button>
+                                        <div class="flex gap-2">
+                                            <button
+                                                class="rounded-lg border border-rose-200 px-3 py-1 text-xs text-rose-700 hover:bg-rose-50"
+                                                @click="editSubCategory(sub.id)"
+                                                >
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </button>
+                                            <button
+                                                class="rounded-lg border border-rose-200 px-3 py-1 text-xs text-rose-700 hover:bg-rose-50"
+                                                @click="deleteSubCategory(sub.id)"
+                                                >
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </div>
                                     </li>
 
                                     <li v-if="(subcategory?.data || []).length === 0" class="py-8 text-center text-sm text-slate-500">
@@ -208,6 +218,59 @@
                                         <i class="fa-solid fa-angle-right"></i>
                                     </button>
                                 </div>
+
+                                <!-- popup for edit sub-category -->
+                                <!-- Edit SubCategory Modal -->
+                                <div v-if="showEditModal" 
+                                        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+                                    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                                        
+                                        <h2 class="text-lg font-bold text-slate-900 mb-4">
+                                        Edit Sub-Category
+                                        </h2>
+
+                                        <form @submit.prevent="updateSubCategory" class="space-y-4">
+                                        
+                                        <div>
+                                            <label class="text-xs font-semibold text-slate-600">Category</label>
+                                            <select v-model="editCategoryId"
+                                            class="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2 text-sm">
+                                            
+                                            <option v-for="c in (category?.data || [])"
+                                                    :key="c.id"
+                                                    :value="c.id">
+                                                {{ c.name }}
+                                            </option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label class="text-xs font-semibold text-slate-600">
+                                            Sub-category Name
+                                            </label>
+                                            <input v-model="editSubCategoryName"
+                                            type="text"
+                                            class="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2 text-sm" />
+                                        </div>
+
+                                        <div class="flex justify-end gap-2 pt-4">
+                                            <button type="button"
+                                            @click="closeEditModal"
+                                            class="rounded-xl border px-4 py-2 text-sm">
+                                            Cancel
+                                            </button>
+
+                                            <button type="submit"
+                                            class="rounded-xl bg-slate-900 px-4 py-2 text-sm text-white">
+                                            Update
+                                            </button>
+                                        </div>
+
+                                        </form>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -384,6 +447,63 @@ async function deleteSubCategory(id) {
         err?.response?.data?.message ||
         Object.values(err?.response?.data?.errors || {})?.[0]?.[0] ||
         "Failed to deleted sub-category.";
+    } finally {
+        loading.value = false;
+    }
+}
+
+// edit sub-category popup start
+const showEditModal = ref(false);
+const editSubCategoryId = ref(null);
+const editSubCategoryName = ref("");
+const editCategoryId = ref("");
+
+function editSubCategory(id){
+    const sub = subcategory.value?.data?.find(s => s.id === id);
+    if (!sub) return;
+
+    editSubCategoryId.value = sub.id;
+    editSubCategoryName.value = sub.name;
+    editCategoryId.value = sub.category_id;
+
+    showEditModal.value = true;
+}
+
+function closeEditModal(){
+    showEditModal.value = false;
+    editSubCategoryId.value = null;
+    editSubCategoryName.value = "";
+    editCategoryId.value = "";
+}
+
+// Update API call
+async function updateSubCategory() {
+    if (!editSubCategoryName.value.trim()) return;
+
+    loading.value = true;
+    errorMsg.value = "";
+    successMsg.value = "";
+
+    try {
+        const res = await api.put(`/expense/edit/subcategory/${editSubCategoryId.value}`,
+            {
+                category_id: editCategoryId.value,
+                name: editSubCategoryName.value.trim(),
+            }
+        );
+
+        successMsg.value = res.data?.message || "Updated successfully.";
+        closeEditModal();
+
+        await fetchSetting(
+            category.value?.current_page ?? 1,
+            subcategory.value?.current_page ?? 1
+        );
+
+    } catch (err) {
+        errorMsg.value =
+        err?.response?.data?.message ||
+        "Failed to update sub-category.";
     } finally {
         loading.value = false;
     }

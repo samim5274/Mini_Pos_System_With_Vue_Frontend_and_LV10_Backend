@@ -60,6 +60,7 @@ Route::middleware(['auth:sanctum', 'throttle:cart'])->group(function () {
         Route::post('/subcategory', [ExpenseController::class, 'storeSubCategory']);
         Route::delete('/category/{id}', [ExpenseController::class, 'deleteCategory']);
         Route::delete('/subcategory/{id}', [ExpenseController::class, 'deleteSubCategory']);
+        Route::put('/edit/subcategory/{id}', [ExpenseController::class, 'editSubCategory']);
     });
 
 });
