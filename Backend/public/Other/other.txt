@@ -8,3 +8,9 @@
 | Success create            | 201  |
 | Success fetch             | 200  |
 | bug / Internal            | 500  |
+
+
+cp .env.example .env
+composer install
+php artisan key:generate
+chmod -R 775 storage bootstrap/cache
