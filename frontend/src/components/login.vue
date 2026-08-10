@@ -98,8 +98,8 @@ const generalError = ref("");
 const errors = reactive({});
 
 const form = reactive({
-    email: "",
-    password: "",
+    email: "admin@gmail.com",
+    password: "password",
     remember: false,
 });
 
